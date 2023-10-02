@@ -3,8 +3,8 @@ from Item import Item
 from Container import Container
 from Draw import Draw
 import random
-from shapely.geometry import Polygon,MultiPolygon,LineString,Point,MultiPoint
-
+from shapely.geometry import Polygon,MultiPolygon,LineString,Point,MultiPoint,MultiLineString
+from Algo import Algo
 
 from shapely.validation import explain_validity
 
@@ -177,6 +177,57 @@ def check(point):
             inside = not inside
 
     return inside
+def get_edge_lines(coord):
+        edges = []
+        num_points = len(coord)
+
+        for i in range(num_points):
+            point1 = coord[i]
+            point2 = coord[(i + 1) % num_points]  # Wrap around to the first point
+
+            line = (point1, point2)
+            edges.append(line)
+
+        return edges
+def calculate_slope(point1, point2):
+    x1, y1 = point1
+    x2, y2 = point2
+    if x1 == x2:
+        # The slope is undefined for vertical lines (division by zero)
+        return None
+    else:
+        return (y2 - y1) / (x2 - x1)
+def alined(coord1,coord2):
+    edges1= get_edge_lines(coord1)
+    edges2= get_edge_lines(coord2)
+    flag3 = False
+    for ed1 in edges1:
+        x1, y1 = ed1
+        line1 = LineString(ed1)
+        flag2 = False
+        for ed2 in edges2:
+            x2, y2 = ed2
+            line2 = LineString(ed2)
+            flag = False
+            if line1.touches(line2):
+                slope1 = calculate_slope(x1, y1)
+                slope2 = calculate_slope(x2, y2)
+                #print("line1:",line1,"line2:",line2)
+                if slope1 != slope2:
+                    flag = True
+                    break
+            if flag:
+                flag2 = True
+                break
+        if flag2:
+            flag3 = True
+            break
+    return flag3
+
+
+
+
+
 
 def main():
     filename = input("Enter the filename containing JSON data: ")
@@ -262,153 +313,9 @@ def main():
     draw_instance = Draw(container_instance,list)
     draw_instance.plot()
     """
-   # Algo_instance = Algo(container_instance, item_instances)
+    Algo_instance = Algo(container_instance, item_instances)
 
-    #val = Algo_instance.Ascending_order_by_item_size()
-    i = 0
-    b = None
-    firstitem = None
-    firstitemcoords = None
-    sectitem = None
-
-    li = None
-    listo = []
-    sorted_items = sorted(item_instances, key=lambda item: item.calculate_total_dimensions(), reverse=True)
-
-    for index, item in enumerate(sorted_items):
-        item.box()
-        if i == 0:
-            x, y = container_instance.calculate_centroid()
-            item.move_item(x, y)
-            firstitem = item.coordinates
-            firstitemcoords = item.coordinates
-            listo.append(item)
-
-        flag = False
-        string = "None"
-        if i >= 1:
-            for x, y in firstitem:
-                coords = item.move_top_left_value(x, y)
-                poly1 = Polygon(firstitemcoords)
-                poly2 = Polygon(coords)
-                poly3 =  Polygon(container_instance.coordinates)
-
-                if poly2.touches(poly2) and not poly1.crosses(poly2) and not poly1.contains(poly2):
-                    item.move_top_left(x, y)
-                    flag = True
-                    string = "top_left"
-                    print(i,string,(not overlaps(poly1, poly2)))
-                    break
-                coords = item.move_bottom_left_value(x, y)
-                poly2 = Polygon(coords)
-                if poly1.intersects(poly2) and not poly1.crosses(poly2) and not poly1.contains(poly2):
-                    item.move_bottom_left(x, y)
-                    flag = True
-                    string = "bottom_left"
-                    print(i,string,(not overlaps(poly1, poly2)))
-                    break
-                coords = item.move_bottom_right_value(x, y)
-                poly2 = Polygon(coords)
-                if poly1.intersects(poly2) and not poly1.crosses(poly2) and not poly1.contains(poly2):
-                    item.move_bottom_right(x, y)
-                    flag = True
-                    string = "bottom_right"
-
-                    print(poly1)
-                    print(poly2)
-                    print(i,string,(not overlaps(poly1, poly2)))
-                    break
-                coords = item.move_top_right_value(x, y)
-                poly2 = Polygon(coords)
-                if poly1.intersects(poly2) and not poly1.crosses(poly2) and not poly1.contains(poly2):
-                    item.move_top_right(x, y)
-                    flag = True
-                    string = "top_right"
-                    print(i,string,(not overlaps(poly1, poly2)))
-                    break
-        if flag:
-
-            listo.append(item)
-            pol1 = Polygon(firstitemcoords)
-            pol2 = Polygon(item.coordinates)
-
-
-            pol = [pol1, pol2]
-            vertices1 = set(list(pol1.exterior.coords))
-            vertices2 = set(list(pol2.exterior.coords))
-            corner_coords1 = vertices1 - vertices2
-            corner_coords2 = vertices2 - vertices1
-            m = list(corner_coords1.union(corner_coords2))
-            print(m)
-
-            """
-            mergedPolys = unary_union(pol)
-
-            exterior_coords_list = []
-
-            # Check if mergedPolys is a MultiPolygon
-            if isinstance(mergedPolys, MultiPolygon):
-                # Iterate through the constituent polygons
-                for polygon in mergedPolys.geoms:
-                    # Get the coordinates of the exterior boundary of each polygon
-                    exterior_coords = list(polygon.exterior.coords)
-                    # Append them to the exterior_coords_list
-                    exterior_coords_list.extend(exterior_coords)
-            else:
-                # If it's a single Polygon, get its exterior coordinates directly
-                exterior_coords_list = list(mergedPolys.exterior.coords)
-
-            corner_coords = [coord for coord in exterior_coords_list if exterior_coords_list.count(coord) == 1]
-            """
-            firstitemcoords = m
-
-            array = []
-            for p in m:
-                min = 0
-                for q in container_instance.get_edge_lines():
-                    line = LineString(q)
-                    point = Point(p)
-                    dis = point.distance(line)
-                    #print("i:",i,"point:",p,"line:",q,"dist:",dis)
-                    if dis > min:
-                        min = dis
-                array.append((p, min))
-            sorted_array = sorted(array, key=lambda x: x[1], reverse=True)
-            print(sorted_array)
-            sorted_points = [point for point, _ in sorted_array]
-            firstitem = m
-        i = i+1
-        if i == 6:
-            break
-
-
-
-    """
-    poly1 = Polygon(firstitem.coordinates)
-    poly2 = Polygon(sectitem.coordinates)
-    print(poly1.intersects(poly2))
-    print(overlaps(poly1, poly2))
-    print(poly1.intersection(poly2))
-
-    pol = [poly1, poly2]
-    mergedPolys = unary_union(pol)
-
-    x_coords = []
-    y_coords = []
-    for x, y in mergedPolys.exterior.coords:
-        print("x:", x,"y",y)
-        x_coords.append(x)
-        y_coords.append(y)
-
-    ite = Item(0, 0, x_coords, y_coords)
-    l = []
-    l.append(ite)
-    """
-
-
-    draw_instance = Draw(container_instance, listo)
-
-    draw_instance.plot()
+    Algo_instance.Ascending_order_by_item_size()
 
 
 

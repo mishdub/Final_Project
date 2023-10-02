@@ -158,6 +158,19 @@ class Item:
         self.x_coords = [x + translation_x for x in self.x_coords]
         self.y_coords = [y + translation_y for y in self.y_coords]
 
+    def move_item_value(self, new_center_x, new_center_y):
+        # Calculate the current center point of the item
+        current_center_x = (self.max_x + self.min_x) / 2
+        current_center_y = (self.max_y + self.min_y) / 2
+
+        # Calculate the translation vector to move the center to the new position
+        translation_x = new_center_x - current_center_x
+        translation_y = new_center_y - current_center_y
+
+        # Update all coordinates by adding the translation vector
+        return [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+
+
     def edge_name(self, i):
         if i == len(self.coordinates) - 1:
             return f"Edge_{len(self.coordinates)}_1"

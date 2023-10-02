@@ -3,6 +3,8 @@ import copy
 from Draw import Draw
 from shapely.geometry import Point, Polygon
 from shapely.geometry import LineString
+import time
+
 
 class Algo:
     def __init__(self, container_instance, item_instances):
@@ -185,14 +187,264 @@ class Algo:
 
         return 0, 0, False
 
+    def plot3(self, item, items):
+        if not self.container_instance.coordinates:
+            raise ValueError("Container is empty")
+
+        max_attempts = 100
+        container_polygon = Polygon(self.container_instance.coordinates)
+
+        for _ in range(max_attempts):
+            # Generate random x and y coordinates within the range of the container
+            x = random.uniform(min(self.container_instance.x_coords), max(self.container_instance.x_coords))
+            y = random.uniform(min(self.container_instance.y_coords), max(self.container_instance.y_coords))
+            item_coords = item.move_item_value(x, y)
+            item_polygon = Polygon(item_coords)
+
+            if item_polygon.within(container_polygon):
+                if not items:
+                    item.move_item(x, y)
+                    return x, y, True
+                else:
+                    # Check for collisions with other items
+                    collision_flag = False
+                    for other_item in items:
+                        if item_polygon.intersects(Polygon(other_item.coordinates)):
+                            collision_flag = True
+                            break
+
+                    if not collision_flag:
+                        item.move_item(x, y)
+                        return x, y, True
+
+        return 0, 0, False
+
+    def plot4(self, item, items):
+        if not self.container_instance.coordinates:
+            raise ValueError("Container is empty")
+        grid_cols = 100
+        grid_rows = 100
+        container_x_min, container_x_max = min(self.container_instance.x_coords), max(self.container_instance.x_coords)
+        container_y_min, container_y_max = min(self.container_instance.y_coords), max(self.container_instance.y_coords)
+
+        cell_width = (container_x_max - container_x_min) / grid_cols
+        cell_height = (container_y_max - container_y_min) / grid_rows
+
+        for row in range(grid_rows):
+            for col in range(grid_cols):
+                # Calculate cell boundaries
+                cell_x_min = container_x_min + col * cell_width
+                cell_x_max = container_x_min + (col + 1) * cell_width
+                cell_y_min = container_y_min + row * cell_height
+                cell_y_max = container_y_min + (row + 1) * cell_height
+
+                # Generate a random point within the cell
+                x = random.uniform(cell_x_min, cell_x_max)
+                y = random.uniform(cell_y_min, cell_y_max)
+
+                item_coords = item.move_item_value(x, y)
+
+                # Check if the item is inside the container and does not overlap with other items
+                item_polygon = Polygon(item_coords)
+                container_polygon = Polygon(self.container_instance.coordinates)
+
+                if item_polygon.within(container_polygon):
+                    collision_flag = False
+                    for other_item in items:
+                        if item_polygon.intersects(Polygon(other_item.coordinates)):
+                            collision_flag = True
+                            break
+
+                    if not collision_flag:
+                        item.move_item(x, y)
+                        return x, y, True
+
+        return 0, 0, False
+
+    def plot5(self, item, items):
+        if not self.container_instance.coordinates:
+            raise ValueError("Container is empty")
+
+        container_polygon = Polygon(self.container_instance.coordinates)
+
+        container_x_min, container_x_max = container_polygon.bounds[0], container_polygon.bounds[2]
+        container_y_min, container_y_max = container_polygon.bounds[1], container_polygon.bounds[3]
+
+        # Calculate an initial cell size based on the square root of the container's area
+        container_area = container_polygon.area
+        initial_cell_size = (container_area) ** 0.5
+
+        # Calculate grid rows and columns based on the initial cell size
+        grid_cols = int((container_x_max - container_x_min) / initial_cell_size)
+        grid_rows = int((container_y_max - container_y_min) / initial_cell_size)
+
+        for row in range(grid_rows):
+            for col in range(grid_cols):
+                cell_x_min = container_x_min + col * initial_cell_size
+                cell_x_max = container_x_min + (col + 1) * initial_cell_size
+                cell_y_min = container_y_min + row * initial_cell_size
+                cell_y_max = container_y_min + (row + 1) * initial_cell_size
+
+                x = random.uniform(cell_x_min, cell_x_max)
+                y = random.uniform(cell_y_min, cell_y_max)
+
+                item_coords = item.move_item_value(x, y)
+                item_polygon = Polygon(item_coords)
+
+                if item_polygon.within(container_polygon):
+                    collision_flag = any(
+                        item_polygon.intersects(Polygon(other_item.coordinates)) for other_item in items)
+                    if not collision_flag:
+                        item.move_item(x, y)
+                        return x, y, True
+
+        return 0, 0, False
+
+    def plot6(self, item, items):
+        if not self.container_instance.coordinates:
+            raise ValueError("Container is empty")
+
+        container_x_min, container_x_max = min(self.container_instance.x_coords), max(self.container_instance.x_coords)
+        container_y_min, container_y_max = min(self.container_instance.y_coords), max(self.container_instance.y_coords)
+        container_width = container_x_max - container_x_min
+        container_height = container_y_max - container_y_min
+        average_item_size = item.calculate_total_dimensions()
+        grid_cols = int(container_width / average_item_size)
+        grid_rows = int(container_height / average_item_size)
+        cell_width = (container_x_max - container_x_min) / grid_cols
+        cell_height = (container_y_max - container_y_min) / grid_rows
+
+        for row in range(grid_rows):
+            for col in range(grid_cols):
+                # Calculate cell boundaries
+                cell_x_min = container_x_min + col * cell_width
+                cell_x_max = container_x_min + (col + 1) * cell_width
+                cell_y_min = container_y_min + row * cell_height
+                cell_y_max = container_y_min + (row + 1) * cell_height
+
+                # Generate a random point within the cell
+                x =cell_x_min
+                y =cell_y_min
+
+                item_coords = item.move_item_value(x, y)
+
+                # Check if the item is inside the container and does not overlap with other items
+                item_polygon = Polygon(item_coords)
+                container_polygon = Polygon(self.container_instance.coordinates)
+
+                if item_polygon.within(container_polygon):
+                    collision_flag = False
+                    for other_item in items:
+                        if item_polygon.intersects(Polygon(other_item.coordinates)):
+                            collision_flag = True
+                            break
+
+                    if not collision_flag:
+                        item.move_item(x, y)
+                        return x, y, True
+
+        return 0, 0, False
+
+    def plot7(self, item, items):
+        if not self.container_instance.coordinates:
+            raise ValueError("Container is empty")
+        grid_cols = 100
+        grid_rows = 100
+        container_x_min, container_x_max = min(self.container_instance.x_coords), max(self.container_instance.x_coords)
+        container_y_min, container_y_max = min(self.container_instance.y_coords), max(self.container_instance.y_coords)
+        if items:
+            x_start, y_start = items[-1].find_point_with_max_x()
+        else:
+            x_start = container_x_min
+            y_start = container_y_min
+
+
+        cell_width = (container_x_max - x_start) / grid_cols
+        cell_height = (container_y_max - y_start) / grid_rows
+
+        # Compute the container polygon once
+        container_polygon = Polygon(self.container_instance.coordinates)
+
+        for row in range(grid_rows):
+            for col in range(grid_cols):
+                # Calculate cell boundaries
+                cell_x_min = x_start + col * cell_width
+                cell_x_max = x_start + (col + 1) * cell_width
+                cell_y_min = y_start + row * cell_height
+                cell_y_max = y_start + (row + 1) * cell_height
+
+                x = (cell_x_min + cell_x_max) / 2
+                y = (cell_y_min + cell_y_max) / 2
+                item_coords = item.move_item_value(x, y)
+
+                # Check if the item is inside the container and does not overlap with other items
+                item_polygon = Polygon(item_coords)
+                container_polygon = Polygon(self.container_instance.coordinates)
+
+                if item_polygon.within(container_polygon):
+                    collision_flag = False
+                    for other_item in items:
+                        if item_polygon.intersects(Polygon(other_item.coordinates)):
+                            collision_flag = True
+                            break
+
+                    if not collision_flag:
+                        item.move_item(x, y)
+                        return x, y, True
+
+        return 0, 0, False
+
+    def plot8(self, item, items, container_x_min,container_x_max, container_y_min,container_y_max):
+        if not self.container_instance.coordinates:
+            raise ValueError("Container is empty")
+        grid_cols = 100
+        grid_rows = 100
+
+        cell_width = (container_x_max - container_x_min) / grid_cols
+        cell_height = (container_y_max - container_y_min) / grid_rows
+
+        for row in range(grid_rows):
+            for col in range(grid_cols):
+                # Calculate cell boundaries
+                cell_x_min = container_x_min + col * cell_width
+                cell_x_max = container_x_min + (col + 1) * cell_width
+                cell_y_min = container_y_min + row * cell_height
+                cell_y_max = container_y_min + (row + 1) * cell_height
+
+                # Generate a random point within the cell
+                x = random.uniform(cell_x_min, cell_x_max)
+                y = random.uniform(cell_y_min, cell_y_max)
+
+
+                item_coords = item.move_item_value(x, y)
+
+                # Check if the item is inside the container and does not overlap with other items
+                item_polygon = Polygon(item_coords)
+                container_polygon = Polygon(self.container_instance.coordinates)
+
+                if item_polygon.within(container_polygon):
+                    collision_flag = False
+                    for other_item in items:
+                        if item_polygon.intersects(Polygon(other_item.coordinates)):
+                            collision_flag = True
+                            break
+
+                    if not collision_flag:
+                        item.move_item(x, y)
+                        return x, y, True
+
+        return 0, 0, False
+
 
     def Ascending_order_by_item_size(self):
         sorted_items = sorted(self.item_instances, key=lambda item: item.calculate_total_dimensions())
         list = []
         value = 0
         i = 0
+
+        start_time = time.time()
         for index, item in enumerate(sorted_items):
-            x, y, flag = self.plot(item, list)
+            x, y, flag = self.plot3(item, list)
             if flag is not False:
                 list.append(item)
                 value = value + item.value
@@ -200,10 +452,15 @@ class Algo:
                 continue
             i = i + 1
             print(i)
-            if i == 200:
-                break
 
-        print("items num in total:",len(sorted_items), "items num picked:",len(list), "value:", value)
+
+
+
+
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print("Elapsed time:", elapsed_time)
+        print("Items in total:", len(sorted_items), "Items picked:", len(list), "value:", value)
         draw_instance = Draw(self.container_instance, list)
         draw_instance.plot()
 
