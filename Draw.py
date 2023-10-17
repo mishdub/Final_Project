@@ -2,9 +2,14 @@ import matplotlib.pyplot as plt
 import random
 
 class Draw:
-    def __init__(self, container_instance, item_instances):
+    def __init__(self, container_instance, item_instances, p1, p2, t1, t2,exterior_coords_list):
         self.container_instance = container_instance
         self.item_instances = item_instances
+        self.p1 = p1
+        self.p2 = p2
+        self.t1 = t1
+        self.t2 = t2
+        self.exterior_coords_list = exterior_coords_list
 
     def plot(self):
         container_x = self.container_instance.x_coords
@@ -29,6 +34,29 @@ class Draw:
 
         # Add grid
         plt.grid(True)
+
+        # Plot custom point if provided
+
+        if self.exterior_coords_list:
+            for (x, y) in self.exterior_coords_list:
+                plt.plot(x, y, 'ro', label="my point")
+        elif not self.exterior_coords_list:
+            x, y = self.p1
+            plt.plot(x, y, 'go', label="my point")
+
+            x, y = self.p2
+            plt.plot(x, y, 'go', label="my point")
+
+            x, y = self.t1
+            plt.plot(x, y, 'ro', label="my point")
+
+            x, y = self.t2
+            plt.plot(x, y, 'ro', label="my point")
+
+
+
+
+
 
         # Show the plot
         plt.show()

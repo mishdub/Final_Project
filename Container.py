@@ -11,7 +11,27 @@ class Container:
         self.coordinates = list(zip(x_coords, y_coords))
         self.x_coords = x_coords
         self.y_coords = y_coords
+        self.max_x = max(x_coords)
+        self.max_y = max(y_coords)
+        self.min_x = min(x_coords)
+        self.min_y = min(y_coords)
         self.grid_coordinates = []
+
+
+    def calculate_distance_threshold(self):
+        # Find the diagonal distance of the region
+        """
+        dx = self.max_x - self.min_x
+        dy = self.max_y - self.min_y
+        max_distance = math.sqrt(dx ** 2 + dy ** 2)
+        """
+        width = self.max_x - self.min_x
+        height = self.max_y - self.min_y
+        max_distance = max(width, height)
+
+        # Calculate the distance_threshold based on the proximity factor
+        distance_threshold = max_distance * 0.1
+        return distance_threshold
 
     def get_edge_lines(self):
         edges = []

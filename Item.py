@@ -1,4 +1,5 @@
 from shapely import box
+import math
 
 class Item:
     def __init__(self, quantity, value, x_coords, y_coords):
@@ -15,6 +16,59 @@ class Item:
         self.y = None
         self.Box = None
 
+    def get_size(self):
+        # Calculate the size of the polygon (e.g., area, perimeter, or bounding box size)
+        # Here's a simple example for a polygon represented by a list of (x, y) points:
+
+        # Calculate the area of the polygon using the shoelace formula
+        n = len(self.coordinates)
+        area = 0
+        for i in range(n):
+            x1, y1 = self.coordinates[i]
+            x2, y2 = self.coordinates[(i + 1) % n]
+            area += (x1 * y2 - x2 * y1)
+        area = abs(area) / 2.0
+
+        # You can return the area as the "size" of the polygon
+        return area
+    def calculate_distance_threshold(self):
+        # Find the diagonal distance of the region
+
+        dx = self.max_x - self.min_x
+        dy = self.max_y - self.min_y
+        max_distance = math.sqrt(dx ** 2 + dy ** 2)
+        """
+        width = self.max_x - self.min_x
+        height = self.max_y - self.min_y
+        max_distance = max(width, height)
+        """
+
+        # Calculate the distance_threshold based on the proximity factor
+        distance_threshold = max_distance * 0.1
+        return distance_threshold
+
+    def set_coordinates(self, coordinates):
+        self.coordinates = coordinates
+        self.x_coords, self.y_coords = zip(*coordinates)  # Unpack and separate x and y coordinates
+        # Convert x_coords and y_coords to lists
+        self.x_coords = list(self.x_coords)
+        self.y_coords = list(self.y_coords)
+        self.max_x = max(self.x_coords)
+        self.max_y = max(self.y_coords)
+        self.min_x = min(self.x_coords)
+        self.min_y = min(self.y_coords)
+
+    def change_point(self, index, new_x, new_y):
+        if 0 <= index < len(self.coordinates):
+            self.x_coords[index] = new_x
+            self.y_coords[index] = new_y
+            self.coordinates[index] = (new_x, new_y)
+            self.max_x = max(self.x_coords)
+            self.max_y = max(self.y_coords)
+            self.min_x = min(self.x_coords)
+            self.min_y = min(self.y_coords)
+        else:
+            print("Invalid index")
 
     def box(self):
         b = box(self.min_x, self.min_y, self.max_x, self.max_y, False)
@@ -303,6 +357,72 @@ class Item:
         translation_x = new_bottom_right_x - self.max_x
         translation_y = new_bottom_right_y - self.max_y
         return [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+
+    def move_to_point(self, reference_vertex_index, new_x, new_y):
+        # Get the reference vertex
+        reference_vertex = self.coordinates[reference_vertex_index]
+
+        # Calculate the translation vector
+        translation_x = new_x - reference_vertex[0]
+        translation_y = new_y - reference_vertex[1]
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+        self.max_x += translation_x
+        self.max_y += translation_y
+        self.min_x += translation_x
+        self.min_y += translation_y
+
+    def move_to_point_value(self, reference_vertex_index, new_x, new_y):
+        # Get the reference vertex
+        reference_vertex = self.coordinates[reference_vertex_index]
+
+        # Calculate the translation vector
+        translation_x = new_x - reference_vertex[0]
+        translation_y = new_y - reference_vertex[1]
+
+        # Update all coordinates by adding the translation vector
+        return [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+
+    def move_edges_to_point(self, reference_edge_index, new_x, new_y):
+        # Get the reference edge
+        edges = self.get_edge_lines()
+        reference_edge = edges[reference_edge_index]
+
+        # Calculate the translation vector
+        translation_x = new_x - reference_edge[0][0]
+        translation_y = new_y - reference_edge[0][1]
+
+        # Update all edges by adding the translation vector to each edge's points
+        updated_edges = [((x1 + translation_x, y1 + translation_y), (x2 + translation_x, y2 + translation_y)) for
+                         (x1, y1), (x2, y2) in edges]
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+        self.max_x += translation_x
+        self.max_y += translation_y
+        self.min_x += translation_x
+        self.min_y += translation_y
+
+        # Return the updated edge variations
+        return updated_edges
+
+    def move_edges_to_point_value(self, reference_edge_index, new_x, new_y):
+        # Get the reference edge
+        edges = self.get_edge_lines()
+        reference_edge = edges[reference_edge_index]
+
+        # Calculate the translation vector
+        translation_x = new_x - reference_edge[0][0]
+        translation_y = new_y - reference_edge[0][1]
+
+        # Update all edges by adding the translation vector to each edge's points
+        return [((x1 + translation_x, y1 + translation_y), (x2 + translation_x, y2 + translation_y)) for
+                         (x1, y1), (x2, y2) in edges]
 
 
 
