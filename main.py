@@ -5,12 +5,19 @@ from Draw import Draw
 import random
 from shapely.geometry import Polygon,MultiPolygon,Point,MultiPoint,MultiLineString
 from Algo import Algo
+from Algo2 import Algo2
+from Algo3 import Algo3
+
+
 import math
 import copy
 from shapely.validation import explain_validity
+from shapely.geometry import Polygon
 
 from shapely import normalize, Polygon, coverage_union, overlaps,distance,LineString,hausdorff_distance
 from shapely.ops import unary_union
+import matplotlib.pyplot as plt
+
 
 
 
@@ -445,24 +452,23 @@ def calculate_slope_and_angle(point1_edge1, point2_edge1, point1_edge2, point2_e
         slope1 = 0
         angle1 = 0
     else:
-        slope1 = (point2_edge1[1] - point1_edge1[1]) / (point2_edge1[0] - point1_edge1[0])
-        angle1 = math.atan(slope1)
+        if point2_edge1[0] == point1_edge1[0]:
+            slope1 = float("inf")
+            angle1 = 90
+        else:
+            slope1 = (point2_edge1[1] - point1_edge1[1]) / (point2_edge1[0] - point1_edge1[0])
+            angle1 = math.atan(slope1)
 
     if point1_edge2[1] == point2_edge2[1]:
         slope2 = 0
         angle2 = 0
     else:
-        slope2 = (point2_edge2[1] - point1_edge2[1]) / (point2_edge2[0] - point1_edge2[0])
-        angle2 = math.atan(slope2)
-
-    # Check if either line is vertical (slope = infinity).
-    if point1_edge1[0] == point2_edge1[0]:
-        slope1 = float("inf")
-        angle1 = 90
-
-    if point1_edge2[0] == point2_edge2[0]:
-        slope2 = float("inf")
-        angle2 = 90
+        if point2_edge2[0] == point1_edge2[0]:
+            slope2 = float("inf")
+            angle2 = 90
+        else:
+            slope2 = (point2_edge2[1] - point1_edge2[1]) / (point2_edge2[0] - point1_edge2[0])
+            angle2 = math.atan(slope2)
 
     # Calculate the angle between the two lines
     angle_between_lines = abs(angle2 - angle1)
@@ -683,6 +689,16 @@ def requirements(p1, p2, t1, t2,epsilon):
     return False
 
 
+def custom_polygon_sort(polygon):
+    value = polygon.value
+    area = polygon.calculate_regular_polygon_area()
+    num_coordinates = len(polygon.coordinates)
+
+    # The expression for sorting: value / (area + number of coordinates)
+    return value / (area + num_coordinates)
+
+
+
 
 def main():
     filename = input("Enter the filename containing JSON data: ")
@@ -770,10 +786,13 @@ def main():
     """
 
 
+    Algo_instance = Algo3(container_instance, item_instances)
 
-    #Algo_instance = Algo(container_instance, item_instances)
+    Algo_instance.plot()
 
-    #Algo_instance.Ascending_order_by_item_size()
+    """
+    algo 2: start
+    
     i = 0
     temp = None
     First_Item = None
@@ -782,7 +801,11 @@ def main():
     list_check = []
     mainitem = None
     center  = None
-    for index, item in enumerate(item_instances):
+    # Example usage to sort a list of polygons
+    sorted_polygons = sorted(item_instances, key=custom_polygon_sort, reverse=True)
+    sorted_items = sorted(sorted_polygons, key=lambda item: item.calculate_regular_polygon_area(), reverse=False)
+
+    for index, item in enumerate(sorted_items):
         # middle of the region
         if i == 0:
         # move first item to the middle of the region
@@ -1048,14 +1071,15 @@ def main():
                 if flag:
                     break
                 z = z+1
-
-
+        print(i)
+        if i == 50:
+            break
         i = i+1
-
-
-
     draw_instance = Draw(container_instance, list_of_items,(1,1), (1,1), (1,1), (1,1), None)
     draw_instance.plot()
+     finish """
+
+
 
 
 

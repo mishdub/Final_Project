@@ -435,7 +435,6 @@ class Algo:
 
         return 0, 0, False
 
-
     def Ascending_order_by_item_size(self):
         sorted_items = sorted(self.item_instances, key=lambda item: item.calculate_total_dimensions())
         list = []

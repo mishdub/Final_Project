@@ -18,6 +18,17 @@ class Container:
         self.grid_coordinates = []
 
 
+    def set_coordinates(self, coordinates):
+        self.coordinates = coordinates
+        self.x_coords, self.y_coords = zip(*coordinates)  # Unpack and separate x and y coordinates
+        # Convert x_coords and y_coords to lists
+        self.x_coords = list(self.x_coords)
+        self.y_coords = list(self.y_coords)
+        self.max_x = max(self.x_coords)
+        self.max_y = max(self.y_coords)
+        self.min_x = min(self.x_coords)
+        self.min_y = min(self.y_coords)
+
     def calculate_distance_threshold(self):
         # Find the diagonal distance of the region
         """
