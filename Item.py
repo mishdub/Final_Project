@@ -225,6 +225,7 @@ class Item:
         self.y_coords = [y + translation_y for y in self.y_coords]
 
 
+
     def move_item(self, new_center_x, new_center_y):
         # Calculate the current center point of the item
         current_center_x = (self.max_x + self.min_x) / 2
@@ -238,6 +239,212 @@ class Item:
         self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
         self.x_coords = [x + translation_x for x in self.x_coords]
         self.y_coords = [y + translation_y for y in self.y_coords]
+        self.max_x = max(self.x_coords)
+        self.max_y = max(self.y_coords)
+        self.min_x = min(self.x_coords)
+        self.min_y = min(self.y_coords)
+
+    def move_item_to_leftmost_maxy(self, new_leftmost_x, new_leftmost_y):
+        # Find all leftmost points with the same x-coordinate
+        leftmost_points = [(x, y) for x, y in zip(self.x_coords, self.y_coords) if x == min(self.x_coords)]
+
+        # Find the leftmost point with the highest y-coordinate
+        current_leftmost_x, current_leftmost_y = max(leftmost_points, key=lambda point: point[1])
+
+        # Calculate the translation vectors to move the leftmost point to the new position
+        translation_x = new_leftmost_x - current_leftmost_x
+        translation_y = new_leftmost_y - current_leftmost_y
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+
+        # Update max and min coordinates
+        self.max_x = max(self.x_coords)
+        self.max_y = max(self.y_coords)
+        self.min_x = min(self.x_coords)
+        self.min_y = min(self.y_coords)
+
+    def move_item_to_leftmost_miny(self, new_leftmost_x, new_leftmost_y):
+        # Find all leftmost points with the same x-coordinate
+        leftmost_points = [(x, y) for x, y in zip(self.x_coords, self.y_coords) if x == min(self.x_coords)]
+
+        # Find the leftmost point with the highest y-coordinate
+        current_leftmost_x, current_leftmost_y = min(leftmost_points, key=lambda point: point[1])
+
+        # Calculate the translation vectors to move the leftmost point to the new position
+        translation_x = new_leftmost_x - current_leftmost_x
+        translation_y = new_leftmost_y - current_leftmost_y
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+
+        # Update max and min coordinates
+        self.max_x = max(self.x_coords)
+        self.max_y = max(self.y_coords)
+        self.min_x = min(self.x_coords)
+        self.min_y = min(self.y_coords)
+
+    def move_item_to_rightmost_maxy(self, new_rightmost_x, new_rightmost_y):
+        # Find all rightmost points with the same x-coordinate
+        rightmost_points = [(x, y) for x, y in zip(self.x_coords, self.y_coords) if x == max(self.x_coords)]
+
+        # Find the rightmost point with the highest y-coordinate
+        current_rightmost_x, current_rightmost_y = max(rightmost_points, key=lambda point: point[1])
+
+        # Calculate the translation vectors to move the rightmost point to the new position
+        translation_x = new_rightmost_x - current_rightmost_x
+        translation_y = new_rightmost_y - current_rightmost_y
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+
+        # Update max and min coordinates
+        self.max_x = max(self.x_coords)
+        self.max_y = max(self.y_coords)
+        self.min_x = min(self.x_coords)
+        self.min_y = min(self.y_coords)
+
+    def move_item_to_rightmost_miny(self, new_rightmost_x, new_rightmost_y):
+        # Find all rightmost points with the same x-coordinate
+        rightmost_points = [(x, y) for x, y in zip(self.x_coords, self.y_coords) if x == max(self.x_coords)]
+
+        # Find the rightmost point with the highest y-coordinate
+        current_rightmost_x, current_rightmost_y = min(rightmost_points, key=lambda point: point[1])
+
+        # Calculate the translation vectors to move the rightmost point to the new position
+        translation_x = new_rightmost_x - current_rightmost_x
+        translation_y = new_rightmost_y - current_rightmost_y
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+
+        # Update max and min coordinates
+        self.max_x = max(self.x_coords)
+        self.max_y = max(self.y_coords)
+        self.min_x = min(self.x_coords)
+        self.min_y = min(self.y_coords)
+
+    def move_item_to_maxy(self, new_x, new_y):
+        # Find the point with the maximum y-coordinate within the polygon
+        maxy_point = max(self.coordinates, key=lambda point: point[1])
+
+        # Calculate the translation vectors to move the polygon to the new position
+        translation_x = new_x - maxy_point[0]
+        translation_y = new_y - maxy_point[1]
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+
+        # Update the x_coords and y_coords lists
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+
+        # Update max and min coordinates
+        self.max_x = max(self.x_coords)
+        self.max_y = max(self.y_coords)
+        self.min_x = min(self.x_coords)
+        self.min_y = min(self.y_coords)
+
+    def move_item_to_miny(self, new_x, new_y):
+        # Find the point with the maximum y-coordinate within the polygon
+        maxy_point = min(self.coordinates, key=lambda point: point[1])
+
+        # Calculate the translation vectors to move the polygon to the new position
+        translation_x = new_x - maxy_point[0]
+        translation_y = new_y - maxy_point[1]
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+
+        # Update the x_coords and y_coords lists
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+
+        # Update max and min coordinates
+        self.max_x = max(self.x_coords)
+        self.max_y = max(self.y_coords)
+        self.min_x = min(self.x_coords)
+        self.min_y = min(self.y_coords)
+
+    def move_item_to_maxx(self, new_x, new_y):
+        # Find the point with the maximum x-coordinate within the polygon
+        maxx_point = max(self.coordinates, key=lambda point: point[0])
+
+        # Calculate the translation vectors to move the polygon to the new position
+        translation_x = new_x - maxx_point[0]
+        translation_y = new_y - maxx_point[1]
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+
+        # Update the x_coords and y_coords lists
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+
+        # Update max and min coordinates
+        self.max_x = max(self.x_coords)
+        self.max_y = max(self.y_coords)
+        self.min_x = min(self.x_coords)
+        self.min_y = min(self.y_coords)
+
+    def move_item_to_minx(self, new_x, new_y):
+        # Find the point with the maximum x-coordinate within the polygon
+        maxx_point = min(self.coordinates, key=lambda point: point[0])
+
+        # Calculate the translation vectors to move the polygon to the new position
+        translation_x = new_x - maxx_point[0]
+        translation_y = new_y - maxx_point[1]
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+
+        # Update the x_coords and y_coords lists
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+
+        # Update max and min coordinates
+        self.max_x = max(self.x_coords)
+        self.max_y = max(self.y_coords)
+        self.min_x = min(self.x_coords)
+        self.min_y = min(self.y_coords)
+
+    def move_item_to_leftmost(self, new_center_x, new_center_y):
+        # Calculate the current center point of the item
+        current_center_x = (self.max_x + self.min_x) / 2
+        current_center_y = (self.max_y + self.min_y) / 2
+
+        # Calculate the translation vector to move the center to the new position
+        translation_x = new_center_x - current_center_x
+        translation_y = new_center_y - current_center_y
+
+        # Calculate the leftmost x-coordinate of the item
+        leftmost_x = min(self.x_coords)
+
+        # Calculate the new x-coordinate for the leftmost side
+        new_leftmost_x = leftmost_x + translation_x
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+
+        # Update max and min coordinates
+        self.max_x = max(self.x_coords)
+        self.max_y = max(self.y_coords)
+        self.min_x = min(self.x_coords)
+        self.min_y = min(self.y_coords)
+        # Adjust the coordinates to move the leftmost side to the new position
+        self.coordinates = [(x - (new_leftmost_x - self.min_x), y) for x, y in self.coordinates]
+        self.x_coords = [x - (new_leftmost_x - self.min_x) for x in self.x_coords]
+        self.min_x = new_leftmost_x
 
     def move_item_value(self, new_center_x, new_center_y):
         # Calculate the current center point of the item
@@ -451,5 +658,117 @@ class Item:
         return [((x1 + translation_x, y1 + translation_y), (x2 + translation_x, y2 + translation_y)) for
                          (x1, y1), (x2, y2) in edges]
 
+    def move_from_to(self, edge_of_pol, edge_of_region):
+        # Calculate the translation vector
+        translation_x = edge_of_region[0][0] - edge_of_pol[0][0]
+        translation_y = edge_of_region[0][1] - edge_of_pol[0][1]
 
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+
+        # Update x and y coordinates separately
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+
+        # Update the bounding box
+        self.max_x += translation_x
+        self.min_x += translation_x
+        self.max_y += translation_y
+        self.min_y += translation_y
+
+        # Update the new position
+        self.x = edge_of_region[0][0]
+        self.y = edge_of_region[0][1]
+
+    def move_from_to2(self, point_of_pol, point_of_region):
+        # Calculate the translation vector
+        translation_x = point_of_region[0] - point_of_pol[0]
+        translation_y = point_of_region[1] - point_of_pol[1]
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+
+        # Update x and y coordinates separately
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+
+        # Update the bounding box
+        self.max_x += translation_x
+        self.min_x += translation_x
+        self.max_y += translation_y
+        self.min_y += translation_y
+
+        # Update the new position
+        self.x = point_of_region[0]
+        self.y = point_of_region[1]
+
+
+    def move_from_to2_value(self, point_of_pol, point_of_region):
+        # Calculate the translation vector
+        translation_x = point_of_region[0] - point_of_pol[0]
+        translation_y = point_of_region[1] - point_of_pol[1]
+
+        # Update all coordinates by adding the translation vector
+        return [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+
+    def align_polygon_start_with_region_start(self, edge_of_pol, edge_of_region):
+        # Calculate the translation vector to align the polygon's start edge with the region's start edge
+        translation_x = edge_of_region[0][0] - edge_of_pol[0][0]
+        translation_y = edge_of_region[0][1] - edge_of_pol[0][1]
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+
+        # Update x and y coordinates separately
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+
+        # Update the bounding box
+        self.max_x += translation_x
+        self.min_x += translation_x
+        self.max_y += translation_y
+        self.min_y += translation_y
+
+        # Update the new position to match the start of the region edge
+        self.x = edge_of_region[0][0]
+        self.y = edge_of_region[0][1]
+
+    def align_polygon_start_with_region_start_value(self, edge_of_pol, edge_of_region):
+        # Calculate the translation vector to align the polygon's start edge with the region's start edge
+        translation_x = edge_of_region[0][0] - edge_of_pol[0][0]
+        translation_y = edge_of_region[0][1] - edge_of_pol[0][1]
+
+        # Update all coordinates by adding the translation vector
+        return [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+
+
+    def align_polygon_end_with_region_start(self, edge_of_pol, edge_of_region):
+        # Calculate the translation vector to align the polygon's end edge with the region's start edge
+        translation_x = edge_of_region[0][0] - edge_of_pol[1][0]
+        translation_y = edge_of_region[0][1] - edge_of_pol[1][1]
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+
+        # Update x and y coordinates separately
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+
+        # Update the bounding box
+        self.max_x += translation_x
+        self.min_x += translation_x
+        self.max_y += translation_y
+        self.min_y += translation_y
+
+        # Update the new position to match the start of the region edge
+        self.x = edge_of_region[0][0]
+        self.y = edge_of_region[0][1]
+
+    def align_polygon_end_with_region_start_value(self, edge_of_pol, edge_of_region):
+        # Calculate the translation vector to align the polygon's end edge with the region's start edge
+        translation_x = edge_of_region[0][0] - edge_of_pol[1][0]
+        translation_y = edge_of_region[0][1] - edge_of_pol[1][1]
+
+        # Update all coordinates by adding the translation vector
+        return [(x + translation_x, y + translation_y) for x, y in self.coordinates]
 

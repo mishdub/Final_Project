@@ -18,6 +18,56 @@ class Container:
         self.grid_coordinates = []
 
 
+
+    def calculate_width(self):
+        """
+        Calculate and return the width of the item based on its coordinates.
+
+        Returns:
+        - The width of the item.
+        """
+        return self.max_x - self.min_x
+
+    def calculate_height(self):
+        """
+        Calculate and return the height of the item based on its coordinates.
+
+        Returns:
+        - The height of the item.
+        """
+        return self.max_y - self.min_y
+
+    def calculate_total_dimensions(self):
+        """
+        Calculate and return the total dimensions (area) of the item based on its coordinates.
+
+        Returns:
+        - The total dimensions (area) of the item.
+        """
+        width = self.max_x - self.min_x
+        height = self.max_y - self.min_y
+        total_dimensions = max(width, height)
+        return total_dimensions
+
+    def calculate_area(self):
+        if len(self.coordinates) < 3:
+            return "A polygon must have at least 3 coordinates."
+
+        # Calculate the center of the polygon
+        x_coords, y_coords = zip(*self.coordinates)
+        center_x = sum(x_coords) / len(self.coordinates)
+        center_y = sum(y_coords) / len(self.coordinates)
+
+        # Calculate the distance from the center to a vertex as the radius
+        radius = math.sqrt((center_x - self.coordinates[0][0]) ** 2 + (center_y - self.coordinates[0][1]) ** 2)
+
+        # Determine the number of sides in the polygon
+        num_sides = len(self.coordinates)
+
+        # Calculate the area using the regular polygon area formula
+        area = (0.5 * num_sides * radius ** 2 * math.sin(2 * math.pi / num_sides))
+
+        return area
     def set_coordinates(self, coordinates):
         self.coordinates = coordinates
         self.x_coords, self.y_coords = zip(*coordinates)  # Unpack and separate x and y coordinates
@@ -31,7 +81,6 @@ class Container:
 
     def calculate_distance_threshold(self):
         # Find the diagonal distance of the region
-        """
         dx = self.max_x - self.min_x
         dy = self.max_y - self.min_y
         max_distance = math.sqrt(dx ** 2 + dy ** 2)
@@ -39,6 +88,7 @@ class Container:
         width = self.max_x - self.min_x
         height = self.max_y - self.min_y
         max_distance = max(width, height)
+        """
 
         # Calculate the distance_threshold based on the proximity factor
         distance_threshold = max_distance * 0.1

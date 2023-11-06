@@ -2,11 +2,27 @@ import json
 from Item import Item
 from Container import Container
 from Draw import Draw
-import random
 from shapely.geometry import Polygon,MultiPolygon,Point,MultiPoint,MultiLineString
+import pymunk
+import sys
+
+
 from Algo import Algo
 from Algo2 import Algo2
 from Algo3 import Algo3
+from Algo4 import Algo4
+from Algo6 import Algo6
+from Algo7 import Algo7
+
+
+import pygame
+from pygame.math import Vector2
+
+import random
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.animation import FuncAnimation
 
 
 import math
@@ -16,7 +32,6 @@ from shapely.geometry import Polygon
 
 from shapely import normalize, Polygon, coverage_union, overlaps,distance,LineString,hausdorff_distance
 from shapely.ops import unary_union
-import matplotlib.pyplot as plt
 
 
 
@@ -786,9 +801,129 @@ def main():
     """
 
 
-    Algo_instance = Algo3(container_instance, item_instances)
+    Algo_instance = Algo4(container_instance, item_instances)
 
-    Algo_instance.plot()
+    Algo_instance.plot7()
+
+    """
+    # Initialize Pygame
+    pygame.init()
+
+    # Constants
+    SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+    TRIANGLE_SIZE = 20  # Adjust size as needed
+    GRAVITY = 900
+    BOUNCE_FACTOR = 0.5
+    TIME_STEP = 1.0 / 60.0
+    MIN_DISTANCE = TRIANGLE_SIZE
+
+    # Initialize PyMunk
+    space = pymunk.Space()
+    space.gravity = (0, -GRAVITY)
+
+    # Create a static ground body as the convex region
+    convex_region = [(200, 200), (300, 100), (500, 100), (600, 200)]
+    ground = pymunk.Poly(space.static_body, vertices=convex_region)
+    space.add(ground)
+
+    # Create a collision handler to handle collisions
+    collision_handler = space.add_default_collision_handler()
+
+    # Colors
+    WHITE = (255, 255, 255)
+    BLUE = (0, 0, 255)
+
+    class Particle:
+        def __init__(self, x, y):
+            self.body = pymunk.Body(1, 1)  # Mass and moment of inertia
+            self.body.position = x, y
+            self.shape = pymunk.Poly.create_box(self.body, size=(TRIANGLE_SIZE, TRIANGLE_SIZE))
+            self.shape.elasticity = BOUNCE_FACTOR
+            space.add(self.body, self.shape)
+
+        def apply_gravity(self):
+            pass  # Gravity is handled by PyMunk
+
+        def is_inside_convex(self):
+            return True  # PyMunk handles containment within the convex region
+
+    # Initialize the screen
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("Particle Simulation")
+
+    # Calculate the center of the convex region
+    center_x = sum(x for x, _ in convex_region) / len(convex_region)
+    center_y = sum(y for _, y in convex_region) / len(convex_region)
+
+    # Create a list of particles (triangles) and position them at the center of the convex region
+    particles = [Particle(center_x, center_y)]
+
+    # Main loop
+    running = True
+    clock = pygame.time.Clock()
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        screen.fill(WHITE)
+
+        for particle in particles:
+            particle.apply_gravity()
+
+        for particle in particles:
+            particle.is_inside_convex()  # Ensure containment
+
+        space.step(TIME_STEP)  # PyMunk automatically handles collisions
+
+        # Draw the particles as triangles
+        for particle in particles:
+            x, y = int(particle.body.position.x), int(particle.body.position.y)
+            points = particle.shape.get_vertices()
+            transformed_points = [(p.x + x, p.y + y) for p in points]
+            pygame.draw.polygon(screen, BLUE, transformed_points, 0)
+
+        # Draw the convex region
+        pygame.draw.polygon(screen, (0, 255, 0), convex_region, 1)
+
+        pygame.display.flip()
+        clock.tick(60)
+
+    pygame.quit()
+    """
+    """
+    # Create the rectangular polygon
+    rectangle = Polygon([(0, 0), (0, 6), (8, 6), (8, 0), (0, 0)])
+
+    # Create the triangular polygon inside the rectangular polygon with the tip touching the edge
+    triangle = Polygon([(5, 4), (3, 6), (5, 3)])
+    triangle = triangle.buffer(0.1)
+
+    # Compute the difference to remove the triangular part from the rectangular polygon
+    resulting_polygon = rectangle.difference(triangle)
+    print(resulting_polygon)
+
+    # Extract the x and y coordinates from the resulting polygon
+    x, y = resulting_polygon.exterior.xy
+
+    # Plot the original rectangle
+    plt.plot(*rectangle.exterior.xy, label='Rectangle', color='blue')
+
+    # Plot the original triangular polygon
+    plt.plot(*triangle.exterior.xy, label='Triangle', color='green')
+
+    # Plot the resulting polygon after the difference operation
+    plt.fill(x, y, alpha=0.5, color='red', label='Result')
+
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.legend()
+    plt.axis('equal')
+    plt.show()
+    
+    """
+
 
     """
     algo 2: start

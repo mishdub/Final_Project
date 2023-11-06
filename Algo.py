@@ -3,6 +3,8 @@ import copy
 from Draw import Draw
 from shapely.geometry import Point, Polygon
 from shapely.geometry import LineString
+from shapely.geometry import Point, Polygon,MultiPolygon
+from shapely import LineString, hausdorff_distance
 import time
 
 
@@ -219,7 +221,97 @@ class Algo:
 
         return 0, 0, False
 
+    def plot3_part2(self, item, items):
+        if not self.container_instance.coordinates:
+            raise ValueError("Container is empty")
+
+        container_polygon = Polygon(self.container_instance.coordinates)
+        max_attempts = 100
+
+        # Calculate a suitable container_size_multiplier based on the region and item size
+        container_bounds = container_polygon.bounds
+        item_bounds = Polygon(item.coordinates).bounds
+        container_size_multiplier = max(
+            (item_bounds[2] - item_bounds[0]) / (container_bounds[2] - container_bounds[0]),
+            (item_bounds[3] - item_bounds[1]) / (container_bounds[3] - container_bounds[1])
+        )
+
+        for attempt in range(max_attempts):
+            # Adjust container bounds based on the container_size_multiplier
+            container_min_x, container_min_y, container_max_x, container_max_y = container_polygon.bounds
+            container_min_x -= (container_max_x - container_min_x) * (1 - container_size_multiplier)
+            container_min_y -= (container_max_y - container_min_y) * (1 - container_size_multiplier)
+            container_max_x += (container_max_x - container_min_x) * (1 - container_size_multiplier)
+            container_max_y += (container_max_y - container_min_y) * (1 - container_size_multiplier)
+
+            # Generate random x and y coordinates within the adjusted container bounds
+            x = random.uniform(container_min_x, container_max_x)
+            y = random.uniform(container_min_y, container_max_y)
+            item_coords = item.move_item_value(x, y)
+            item_polygon = Polygon(item_coords)
+
+            if item_polygon.within(container_polygon):
+                if not items:
+                    item.move_item(x, y)
+                    return x, y, True
+                else:
+                    # Check for collisions with other items using any and all
+                    collision_flag = any(
+                        item_polygon.intersects(Polygon(other_item.coordinates)) for other_item in items)
+                    if not collision_flag:
+                        item.move_item(x, y)
+                        return x, y, True
+
+            # Gradually increase the container_size_multiplier based on the number of attempts
+            container_size_multiplier += (0.05 + (attempt / max_attempts) * 0.05)
+
+        return 0, 0, False
+
+
     def plot4(self, item, items):
+        if not self.container_instance.coordinates:
+            raise ValueError("Container is empty")
+        grid_cols = 100
+        grid_rows = 100
+        container_x_min, container_x_max = min(self.container_instance.x_coords), max(self.container_instance.x_coords)
+        container_y_min, container_y_max = min(self.container_instance.y_coords), max(self.container_instance.y_coords)
+
+        cell_width = (container_x_max - container_x_min) / grid_cols
+        cell_height = (container_y_max - container_y_min) / grid_rows
+
+        for row in range(grid_rows):
+            for col in range(grid_cols):
+                # Calculate cell boundaries
+                cell_x_min = container_x_min + col * cell_width
+                cell_x_max = container_x_min + (col + 1) * cell_width
+                cell_y_min = container_y_min + row * cell_height
+                cell_y_max = container_y_min + (row + 1) * cell_height
+
+                # Generate a random point within the cell
+                x = random.uniform(cell_x_min, cell_x_max)
+                y = random.uniform(cell_y_min, cell_y_max)
+
+                item_coords = item.move_item_value(x, y)
+
+                # Check if the item is inside the container and does not overlap with other items
+                item_polygon = Polygon(item_coords)
+                container_polygon = Polygon(self.container_instance.coordinates)
+
+                if item_polygon.within(container_polygon):
+                    collision_flag = False
+                    for other_item in items:
+                        if item_polygon.intersects(Polygon(other_item.coordinates)):
+                            collision_flag = True
+                            break
+
+                    if not collision_flag:
+                        item.move_item(x, y)
+                        return x, y, True
+
+        return 0, 0, False
+
+
+    def plot4_part2(self, item, items):
         if not self.container_instance.coordinates:
             raise ValueError("Container is empty")
         grid_cols = 100
@@ -435,6 +527,100 @@ class Algo:
 
         return 0, 0, False
 
+    def find_width_and_height(self,coordinates):
+        if not coordinates:
+            return None  # Handle the case where coordinates are empty
+
+        # Initialize the min and max values for x and y
+        min_x = float('inf')
+        max_x = float('-inf')
+        min_y = float('inf')
+        max_y = float('-inf')
+
+        # Iterate through the coordinates to find min and max values
+        for x, y in coordinates:
+            min_x = min(min_x, x)
+            max_x = max(max_x, x)
+            min_y = min(min_y, y)
+            max_y = max(max_y, y)
+
+        # Calculate width and height
+        width = max_x - min_x
+        height = max_y - min_y
+
+        return max_x, min_x, max_y, min_y
+
+    def for_edges_that_intersect(self, pol1, pol2):
+        buffered_result = pol2.buffer(1000)
+
+        mergedPolys = pol1.difference(buffered_result)
+        exterior_coords_list = []
+        if isinstance(mergedPolys, MultiPolygon):
+            # Iterate through the constituent polygons
+            for polygon in mergedPolys.geoms:
+                # Get the coordinates of the exterior boundary of each polygon
+                exterior_coords = list(polygon.exterior.coords)
+                # Append them to the exterior_coords_list
+                return exterior_coords_list.extend(exterior_coords)
+        else:
+            # If it's a single Polygon, get its exterior coordinates directly
+            return list(mergedPolys.exterior.coords)
+
+    def plot9(self):
+        sorted_items = sorted(self.item_instances, key=lambda item: item.calculate_total_dimensions(), reverse=True)
+        new_region = self.container_instance.coordinates
+        for index, item in enumerate(sorted_items):
+            container_x_max, container_x_min, container_y_max, container_y_min = self.find_width_and_height(new_region)
+
+            grid_cols = 100
+            grid_rows = 100
+
+            cell_width = (container_x_max - container_x_min) / grid_cols
+            cell_height = (container_y_max - container_y_min) / grid_rows
+
+            for row in range(grid_rows):
+                for col in range(grid_cols):
+                    # Calculate cell boundaries
+                    cell_x_min = container_x_min + col * cell_width
+                    cell_x_max = container_x_min + (col + 1) * cell_width
+                    cell_y_min = container_y_min + row * cell_height
+                    cell_y_max = container_y_min + (row + 1) * cell_height
+
+                    # Generate a random point within the cell
+                    x = random.uniform(cell_x_min, cell_x_max)
+                    y = random.uniform(cell_y_min, cell_y_max)
+
+                    item_coords = item.move_item_value(x, y)
+
+                    # Check if the item is inside the container and does not overlap with other items
+                    item_polygon = Polygon(item_coords)
+                    container_polygon = Polygon(new_region)
+
+                    if item_polygon.within(container_polygon):
+                            item.box()
+                            item.move_item(x, y)
+                            list_of_new_region= self.for_edges_that_intersect(container_polygon, Polygon(item.coordinates))
+                            copied = copy.deepcopy(item)
+                            copied.set_coordinates(list_of_new_region)
+                            listi = []
+                            listi.append(item)
+                            draw_instance = Draw(self.container_instance, listi, (1, 1), (1, 1), (1, 1), (1, 1),
+                                                 None)
+                            draw_instance.plot()
+                            listi.pop()
+                            listi.append(copied)
+                            draw_instance = Draw(self.container_instance, listi, (1, 1), (1, 1), (1, 1), (1, 1),
+                                                 None)
+                            draw_instance.plot()
+                            listi.pop()
+                            listi.pop()
+
+
+
+                            break
+
+
+
     def Ascending_order_by_item_size(self):
         sorted_items = sorted(self.item_instances, key=lambda item: item.calculate_total_dimensions())
         list = []
@@ -449,18 +635,16 @@ class Algo:
                 value = value + item.value
             elif flag is False:
                 continue
+            if i == 250:
+                break
             i = i + 1
             print(i)
-
-
-
-
 
         end_time = time.time()
         elapsed_time = end_time - start_time
         print("Elapsed time:", elapsed_time)
         print("Items in total:", len(sorted_items), "Items picked:", len(list), "value:", value)
-        draw_instance = Draw(self.container_instance, list)
+        draw_instance = Draw(self.container_instance, list,(1,1),(1,1),(1,1),(1,1),None,None,None)
         draw_instance.plot()
 
     def Descending_order_by_item_size(self):
