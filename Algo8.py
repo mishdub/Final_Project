@@ -53,6 +53,8 @@ class Algo8:
         return sorted_coordinates
 
     def move_poly(self, polygon, angle, convex_region):
+        #go over the front points of the polygon and crete lines from them in the direction and
+        #check for intresection point in the all convex region
         list_of_points = []
         dime = self.container_instance.calculate_total_dimensions()
         vx, vy = (
@@ -75,6 +77,68 @@ class Algo8:
                     from_p = point
                     to_p = (inter_x, inter_y)
         return from_p, to_p
+
+    def move_poly_LineString(self, polygon, angle, line_st):
+        #go over the front points of the polygon and crete lines from them in the direction and
+        #check for intresection point in a specific region (line string)
+        list_of_lines = []
+        line_st = LineString(line_st)
+        dime = self.container_instance.calculate_total_dimensions()
+        vx, vy = (
+            math.cos(math.radians(angle)), math.sin(math.radians(angle)))
+        min_distance = float('inf')
+        from_p = None
+        to_p = None
+        list_of_points = []
+        for point in polygon.coordinates:
+            x, y = point
+            x1, y1 = self.calculate_endpoint_from_direction(x, y, vx, vy, dime)
+            line = LineString([(x, y), (x1, y1)])
+            if not line.crosses(Polygon(polygon.coordinates)):
+                list_of_lines.append([(x, y), (x1, y1)])
+                in_po = self.find_intersection_point_linestring(line_st, [(x, y), (x1, y1)], (x, y))
+                if in_po is not None:
+                    list_of_points.append(in_po)
+                    inter_x, inter_y = in_po
+                    p1 = Point(x, y)
+                    p2 = Point(inter_x, inter_y)
+                    distance = p1.distance(p2)
+                    if distance == 0:
+                        break
+                    if distance < min_distance:
+                        min_distance = distance
+                        from_p = point
+                        to_p = (inter_x, inter_y)
+
+        return from_p, to_p, list_of_points, list_of_lines, min_distance
+
+    def move_poly_LineString2(self, polygon, angle, line_st):
+        #go over all the points of the line string and create lines from them and check intresections in the polygon
+        list_of_lines = []
+        angle = (angle + 180) % 360
+        dime = self.container_instance.calculate_total_dimensions()
+        vx, vy = (
+            math.cos(math.radians(angle)), math.sin(math.radians(angle)))
+        min_distance = float('inf')
+        from_p = None
+        to_p = None
+        list_of_points = []
+        for point_line in line_st.coords:
+            xl, yl = point_line
+            x1, y1 = self.calculate_endpoint_from_direction(xl, yl, vx, vy, dime)
+            p = self.find_intersection_point2(polygon.coordinates, [(xl, yl), (x1, y1)], (xl, yl))
+            if p is not None:
+                inx, iny = p
+                p1 = Point(xl, yl)
+                p2 = Point(inx, iny)
+                list_of_points.append((xl, yl))
+                list_of_points.append((inx, iny))
+                distance = p1.distance(p2)
+                if distance < min_distance:
+                    min_distance = distance
+                    from_p = (inx, iny)
+                    to_p = (xl, yl)
+        return from_p, to_p, list_of_points, list_of_lines ,min_distance
 
     def move_poly_MultiLineString(self, polygon, angle, MultiLineString):
         list_of_lines = []
@@ -125,13 +189,10 @@ class Algo8:
                 p = self.find_intersection_point2(polygon.coordinates, [(xl, yl), (x1, y1)], (xl, yl))
                 if p is not None:
                     inx, iny = p
-
                     p1 = Point(xl, yl)
                     p2 = Point(inx, iny)
                     list_of_points.append((xl, yl))
                     list_of_points.append((inx, iny))
-
-
                     distance = p1.distance(p2)
                     if distance < min_distance:
                         min_distance = distance
@@ -177,9 +238,34 @@ class Algo8:
                             f_p = (px, py)
                             t_p = (cx, cy)
                 elif intersection.geom_type == "LineString":
+                    """
                     print("line string")
+                    list_of_lines.append(list(intersection.coords))
 
+                    for point in intersection.coords:
+                        list_of_points.append(point)
+                    
                     f_p, t_p = self.move_poly(original_polygon, angle, convex_region)
+                    """
+                    f_p1, t_p1, list_of_points1, list_of_l1, dis1 = self.move_poly_LineString(original_polygon,
+                                                                                                    angle,
+                                                                                                    list(intersection.coords))
+                    f_p2, t_p2, list_of_points2, list_of_l2, dis2 = self.move_poly_LineString2(original_polygon,
+                                                                                                   angle,
+                                                                                                   intersection)
+                    if dis1 < dis2:
+                        f_p = f_p1
+                        t_p = t_p1
+                        list_of_l = list_of_l1
+                        list_of_points = list_of_points1
+
+                    else:
+                        f_p = f_p2
+                        t_p = t_p2
+                        list_of_l = list_of_l2
+                        list_of_points = list_of_points2
+
+
 
                 elif intersection.geom_type == "MultiLineString":
                     for line in intersection.geoms:
@@ -190,12 +276,17 @@ class Algo8:
                     if dis1 < dis2:
                         f_p = f_p1
                         t_p = t_p1
+                        list_of_l = list_of_l1
+                        list_of_points = list_of_points1
 
                     else:
                         f_p = f_p2
                         t_p = t_p2
+                        list_of_l = list_of_l2
+                        list_of_points = list_of_points2
 
-        return f_p, t_p, list_of_lines, list_of_points
+
+        return f_p, t_p, list_of_lines + list_of_l, list_of_points
 
     def classify_points_left_right1(self,line_angle, line_start, points):
         left_side_points = []
@@ -547,54 +638,71 @@ class Algo8:
         x, y = self.container_instance.calculate_centroid()
         convex_region = self.container_instance.coordinates
         another_list = []
+        value = 0
         start_time = time.time()
         for dex, polygon in enumerate(sorted_items):
+            if dex == 300:
+                break
             polygon.move_item(x, y)
-            copied = copy.deepcopy(polygon)
+            pol2 = Polygon(polygon.coordinates)
+            pol1 = Polygon(convex_region)
+            if pol2.within(pol1):
+                copied = copy.deepcopy(polygon)
+                print(dex)
+                if dex == 0:
+                    extended_polygon = self.extend_pol_for_first_time(angle, polygon)
+                    f_p, t_p, list_of_lines, list_of_points = self.place_poly(polygon, extended_polygon, convex_region,
+                                                                              angle)
+                    polygon.move_from_to2(f_p, t_p)
+                    list_of_new_region = self.for_edges_that_intersect(Polygon(convex_region),
+                                                                       Polygon(polygon.coordinates))
+                    convex_region = list_of_new_region
+                    another_list.append(polygon)
+                    value = value + polygon.value
 
-            print(dex)
-            if dex == 0:
-                extended_polygon = self.extend_pol_for_first_time(angle, polygon)
-                f_p, t_p, list_of_lines,list_of_points = self.place_poly(polygon, extended_polygon, convex_region,
-                                                          angle)
-                polygon.move_from_to2(f_p, t_p)
-                list_of_new_region = self.for_edges_that_intersect(Polygon(convex_region),
-                                                                   Polygon(polygon.coordinates))
-                convex_region = list_of_new_region
-                another_list.append(polygon)
+                if dex >= 1:
+                    list_of_lines = []
+                    list_of_points = []
+                    # Get the polygon before the one at index dex
+                    previous_polygon = sorted_items[dex - 1]
+                    flag = False
+                    while not flag:
+                        flag, d1, d2, d3, d4, d5, d6, extended_polygon = self.placement(angle, polygon.coordinates,
+                                                                                        previous_polygon)
+                        if flag:
+                            extended_polygon = extended_polygon.buffer(0.1)
+                            f_p, t_p, list_of_lines, list_of_points = self.place_poly(polygon, extended_polygon,
+                                                                                      convex_region, angle)
+                            polygon.move_from_to2(f_p, t_p)
+                            another_list.append(polygon)
+                            list_of_new_region = self.for_edges_that_intersect(Polygon(convex_region),
+                                                                               Polygon(polygon.coordinates))
+                            convex_region = list_of_new_region
+                            break
 
-            if dex >= 1:
-                list_of_lines = []
-                list_of_points = []
+                        else:
+                            angle = (angle + 0.5) % 360
+                    """
+                    if dex == 219:
+                        copied.set_coordinates(convex_region)
+                        temp_list = []
+                        temp_list.append(copied)
+                        draw_instance = Draw(self.container_instance, temp_list, (1, 1), (1, 1), (1, 1), (1, 1),
+                                            list_of_points,
+                                             None,
+                                             None, list_of_lines)
+                        draw_instance.plot()
+                    """
 
-                # Get the polygon before the one at index dex
-                previous_polygon = sorted_items[dex - 1]
-                flag = False
-                while not flag:
-                    flag, d1, d2, d3, d4, d5, d6, extended_polygon = self.placement(angle, polygon.coordinates, previous_polygon)
-                    if flag:
-                        extended_polygon = extended_polygon.buffer(0.1)
-                        f_p, t_p, list_of_lines, list_of_points = self.place_poly(polygon, extended_polygon, convex_region, angle)
-                        polygon.move_from_to2(f_p, t_p)
-                        another_list.append(polygon)
-                        list_of_new_region = self.for_edges_that_intersect(Polygon(convex_region),
-                                                                           Polygon(polygon.coordinates))
-                        convex_region = list_of_new_region
-                        break
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(elapsed_time)
+        print("num of polygons", len(another_list),"out of",len(self.item_instances), "time", elapsed_time, "value", value)
 
-                    else:
-                        angle = (angle + 0.5) % 360
-
-                if dex == 110:
-                    end_time = time.time()
-                    elapsed_time = end_time - start_time
-                    print(elapsed_time)
-
-                    draw_instance = Draw(self.container_instance, another_list, (1, 1), (1, 1), (1, 1), (1, 1), list_of_points,
-                                         None,
-                                         None, list_of_lines)
-                    draw_instance.plot()
-                    break
+        draw_instance = Draw(self.container_instance, another_list, (1, 1), (1, 1), (1, 1), (1, 1), None,
+                             None,
+                             None, None)
+        draw_instance.plot()
 
 
 
