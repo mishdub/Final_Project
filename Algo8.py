@@ -327,6 +327,18 @@ class Algo8:
                     farthest_point = point_coords
         return farthest_point
 
+    def calculate_line_angle(self,line):
+        # Extract the coordinates of the start and end points of the line
+        start_x, start_y = line.coords[0]
+        end_x, end_y = line.coords[-1]
+
+        # Calculate the angle in radians
+        angle_radians = math.atan2(end_y - start_y, end_x - start_x)
+
+        # Convert the angle from radians to degrees
+        angle_degrees = math.degrees(angle_radians)
+
+        return angle_degrees
     def placement(self, angle, middle_polygon, convex_polygon):
         dime = self.container_instance.calculate_total_dimensions()
         center = self.container_instance.calculate_centroid()
@@ -347,6 +359,9 @@ class Algo8:
 
         right_line = LineString([(px1, py1), p1])
         left_line = LineString([(px2, py2), p2])
+
+
+
         filled_polygon = Polygon(list(left_line.coords) + list(right_line.coords)[::-1])
 
         flag = False
@@ -640,8 +655,9 @@ class Algo8:
         another_list = []
         value = 0
         start_time = time.time()
+
         for dex, polygon in enumerate(sorted_items):
-            if dex == 300:
+            if dex == 150:
                 break
             polygon.move_item(x, y)
             pol2 = Polygon(polygon.coordinates)
@@ -665,6 +681,13 @@ class Algo8:
                     list_of_points = []
                     # Get the polygon before the one at index dex
                     previous_polygon = sorted_items[dex - 1]
+                    convex_size = self.calculate_width_and_height(self.container_instance.coordinates)
+                    curr_polygon_size = self.calculate_width_and_height(polygon.coordinates)
+                    prev_polygon_size = self.calculate_width_and_height(previous_polygon.coordinates)
+                    pol_size = curr_polygon_size+prev_polygon_size
+                    incr = (pol_size / convex_size)
+
+                    print("size", pol_size / convex_size)
                     flag = False
                     while not flag:
                         flag, d1, d2, d3, d4, d5, d6, extended_polygon = self.placement(angle, polygon.coordinates,
@@ -674,14 +697,16 @@ class Algo8:
                             f_p, t_p, list_of_lines, list_of_points = self.place_poly(polygon, extended_polygon,
                                                                                       convex_region, angle)
                             polygon.move_from_to2(f_p, t_p)
+
                             another_list.append(polygon)
+
                             list_of_new_region = self.for_edges_that_intersect(Polygon(convex_region),
                                                                                Polygon(polygon.coordinates))
                             convex_region = list_of_new_region
                             break
 
                         else:
-                            angle = (angle + 0.5) % 360
+                            angle = (angle + incr) % 360
                     """
                     if dex == 219:
                         copied.set_coordinates(convex_region)
