@@ -12,10 +12,32 @@ class Item:
         self.max_y = max(y_coords)
         self.min_x = min(x_coords)
         self.min_y = min(y_coords)
+        self.ex_dime = None
         self.x = None
         self.y = None
         self.Box = None
 
+
+    def extended_dime(self, coordinates):
+        if coordinates:
+            if len(coordinates) < 2:
+                raise ValueError("A polygon must have at least 2 vertices to calculate width and height.")
+
+                # Initialize with the coordinates of the first vertex.
+            min_x, max_x = coordinates[0][0], coordinates[0][0]
+            min_y, max_y = coordinates[0][1], coordinates[0][1]
+
+            # Iterate through the remaining vertices to find the bounding box.
+            for x, y in coordinates:
+                min_x = min(min_x, x)
+                max_x = max(max_x, x)
+                min_y = min(min_y, y)
+                max_y = max(max_y, y)
+
+            width = max_x - min_x
+            height = max_y - min_y
+
+            return min(width, height)
 
 
     def calculate_regular_polygon_area(self):
