@@ -616,18 +616,17 @@ class Algo11:
         return (px2, py2), (qx2, qy2), left
 
 
-    def check_ep2(self, angle, middle_polygon,center):
-
+    def check_ep2(self, angle, middle_polygon,center,polygon):
         dime = self.container_instance.calculate_total_dimensions()
-        angle = (angle + 180) % 360
         vx, vy = (
             math.cos(math.radians(angle)), math.sin(math.radians(angle)))
         left, right = self.classify_points_left_right1(angle, center, middle_polygon)
+        center = self.calculate_centroid(polygon.coordinates)
         cx, cy = center
 
         x1, y1 = self.calculate_endpoint_from_direction(cx, cy, vx, vy, dime)
         line1 = [(cx, cy), (x1, y1)]
-        po1 = self.find_farthest_point_from_line_temp(line1, right)
+        po1 = self.find_farthest_point_from_line(line1, right,polygon,vx,vy,dime)
 
         return po1
 
@@ -1043,10 +1042,9 @@ class Algo11:
 
                         for point in points:
                             line = []
-                            another_flag = True
                             angle = self.calculate_angle_in_degrees(point, previous_polygon.left_point)
                             index = 0
-                            while another_flag:
+                            while True:
                                 print(index)
                                 index = index + 1
                                 a, b, c = self.check_ep(angle, previous_polygon, point)
@@ -1055,7 +1053,7 @@ class Algo11:
                                 p = Polygon(previous_polygon.coordinates)
                                 p = p.buffer(0.1)
                                 if not l.crosses(p):
-                                    another_flag = False
+                                    break
 
                             angle = (angle + 0.01 % 360)
 
@@ -1080,8 +1078,8 @@ class Algo11:
                             aru.append(copied2)
                             aru.append(polygon)
                             aru.append(previous_polygon)
-                            if dex >= 500:
-                                draw_instance = Draw(self.container_instance, aru, (1, 1), (1, 1), (1, 1),
+                            if dex >= 553:
+                                draw_instance = Draw(self.container_instance, another_list, (1, 1), (1, 1), (1, 1),
                                                      (1, 1),
                                                      poi,
                                                      None,

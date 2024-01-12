@@ -1,9 +1,15 @@
 from Draw import Draw
 import math
-from shapely.geometry import Polygon, MultiPolygon, LineString, Point
+from shapely.geometry import Polygon, MultiPolygon, LineString, Point,MultiPoint,MultiLineString
 from shapely.ops import unary_union
 from shapely.ops import nearest_points
 from scipy.spatial import ConvexHull
+from math import cos, sin, radians
+from alphashape import alphashape
+
+
+
+
 
 import time
 import warnings
@@ -14,7 +20,7 @@ import numpy as np
 from decimal import Decimal, getcontext
 
 
-class Algo12:
+class Algo15:
 
     def __init__(self, container_instance, item_instances):
         self.container_instance = container_instance
@@ -480,8 +486,9 @@ class Algo12:
 
         return angle_degrees
 
-    def placement(self, angle, middle_polygon, convex_polygon, center):
+    def placement(self, angle, middle_polygon, convex_polygon):
         dime = self.container_instance.calculate_total_dimensions()
+        center = self.calculate_centroid(middle_polygon)
         cx, cy = center
 
         vx, vy = (
@@ -511,10 +518,11 @@ class Algo12:
             flag = True
         return flag, (px1, py1), p1, (px2, py2), p2, (cx, cy), (x1, y1), filled_polygon, right_line, left_line
 
-    def placement2(self, angle, middle_polygon, convex_polygon, center):
+    def placement2(self, angle, middle_polygon, convex_polygon):
         middle_polygon = (Polygon(middle_polygon)).buffer(0.1)
         middle_polygon = middle_polygon.exterior.coords
         dime = self.container_instance.calculate_total_dimensions()
+        center = self.calculate_centroid(middle_polygon)
         cx, cy = center
         vx, vy = (
             math.cos(math.radians(angle)), math.sin(math.radians(angle)))
@@ -538,6 +546,36 @@ class Algo12:
         flag = False
         pol = Polygon(convex_polygon.coordinates)
         pol = pol.buffer(0.1)
+
+        if not (filled_polygon.intersects(pol)):
+            flag = True
+        return flag, (px1, py1), p1, (px2, py2), p2, (cx, cy), (x1, y1), filled_polygon, right_line, left_line
+
+    def placement3(self, angle, middle_polygon, convex_region, dist, the_dist):
+        center = self.calculate_centroid(middle_polygon)
+        cx, cy = center
+
+        vx, vy = (
+            math.cos(math.radians(angle)), math.sin(math.radians(angle)))
+        left, right = self.classify_points_left_right1(angle, center, middle_polygon)
+
+        x1, y1 = self.calculate_endpoint_from_direction(cx, cy, vx, vy, dist)
+
+        line1 = [(cx, cy), (x1, y1)]
+
+        px1, py1 = self.find_farthest_point_from_line(line1, right, middle_polygon, vx, vy, the_dist)
+        px2, py2 = self.find_farthest_point_from_line(line1, left, middle_polygon, vx, vy, the_dist)
+
+        p1 = self.calculate_endpoint_from_direction(px1, py1, vx, vy, dist)
+        p2 = self.calculate_endpoint_from_direction(px2, py2, vx, vy, dist)
+
+        right_line = LineString([(px1, py1), p1])
+        left_line = LineString([(px2, py2), p2])
+
+        filled_polygon = Polygon(list(left_line.coords) + list(right_line.coords)[::-1])
+
+        flag = False
+        pol = Polygon(convex_region).exterior
 
         if not (filled_polygon.intersects(pol)):
             flag = True
@@ -558,11 +596,11 @@ class Algo12:
         px1, py1 = self.find_farthest_point_from_line(line1, right, polygon.coordinates, vx, vy, dime)
         px2, py2 = self.find_farthest_point_from_line(line1, left, polygon.coordinates, vx, vy, dime)
 
+
         p1 = self.calculate_endpoint_from_direction(px1, py1, vx, vy, dime)
         p2 = self.calculate_endpoint_from_direction(px2, py2, vx, vy, dime)
 
-        int_point1 = self.find_intersection_point(convex_region, [(px1, py1), p1],
-                                                  (px1, py1))
+        int_point1 = self.find_intersection_point(convex_region, [(px1, py1), p1],(px1, py1))
 
         if int_point1 is None:
             int_point1 = px1, py1
@@ -686,6 +724,7 @@ class Algo12:
         filled_polygon = Polygon(list(left_line.coords) + list(right_line.coords)[::-1])
 
         return filled_polygon, right_line, left_line
+
 
     def extend_pol_for_first_time2(self, angle, polygon, center):
         polygon = (Polygon(polygon.coordinates)).buffer(0.1)
@@ -887,6 +926,7 @@ class Algo12:
             # Other types of intersections (e.g., LineString, MultiLineString)
             return None  # Handle as needed
 
+
     def calculate_endpoint_from_direction(self, x1, y1, dx, dy, length):
         # Calculate the end point
         x2 = x1 + length * dx
@@ -1033,13 +1073,37 @@ class Algo12:
         min_x, min_y = min(x for x, y in vertices), min(y for x, y in vertices)
         max_x, max_y = max(x for x, y in vertices), max(y for x, y in vertices)
 
+
+
         # Create LineString objects for the vertical and horizontal lines
         vertical_line = LineString([(center_x, min_y), (center_x, max_y)])
         horizontal_line = LineString([(min_x, center_y), (max_x, center_y)])
 
         return [(center_x, min_y), (center_x, max_y)], [(min_x, center_y), (max_x, center_y)]
 
-    def find_points_that_intersect(self, left_line, right_line, convex_region):
+    def create_lines2(self, vertices):
+        # Find the center of the convex region
+        center_x, center_y = self.calculate_centroid(vertices)
+
+        # Find the minimum and maximum coordinates
+        min_x, min_y = min(x for x, y in vertices), min(y for x, y in vertices)
+        max_x, max_y = max(x for x, y in vertices), max(y for x, y in vertices)
+
+        # Calculate midpoints
+        vertical_midpoint = (center_x, (min_y + max_y) / 2)
+        horizontal_midpoint = ((min_x + max_x) / 2, center_y)
+
+        # Calculate half the length
+        half_length_x = (max_x - min_x) / 3  # Dividing by 4 to get half of the original length
+        half_length_y = (max_y - min_y) / 3
+
+        # Create LineString objects for the lines with half the length
+        vertical_line = LineString([(center_x, center_y - half_length_y), (center_x, center_y + half_length_y)])
+        horizontal_line = LineString([(center_x - half_length_x, center_y), (center_x + half_length_x, center_y)])
+
+        return list(vertical_line.coords), list(horizontal_line.coords)
+
+    def find_points_that_intersect(self, left_line, right_line,convex_region):
         pol = convex_region
         left = list(left_line.coords)
         right = list(right_line.coords)
@@ -1057,6 +1121,7 @@ class Algo12:
 
         return nearest_point.x, nearest_point.y
 
+
     def point_polygon_projection_shapely(self, point, polygon):
         # Create Shapely Point and Polygon objects
         shapely_point = Point(point)
@@ -1067,7 +1132,7 @@ class Algo12:
 
         return nearest_point.x, nearest_point.y
 
-    def find_perpendicular_point_on_convex_region(self, A, convex_region):
+    def find_perpendicular_point_on_convex_region(self,A, convex_region):
         # A is a tuple of the form (x, y)
         # convex_region is a list of tuples representing the convex region vertices
 
@@ -1121,7 +1186,33 @@ class Algo12:
         # Return the coordinates of the adjusted intersection point
         return adjusted_intersection.xy[0][0], adjusted_intersection.xy[1][0]
 
-    def find_point_C(self, point_A, convex_region_coordinates):
+    def find_perpendicular_point_on_convex_region4(self, A, convex_region):
+        # A is a tuple of the form (x, y)
+        # convex_region is a list of tuples representing the convex region vertices
+
+        # Find the closest vertex to point A in the convex region
+        closest_vertex = min(convex_region, key=lambda vertex: np.linalg.norm(np.array(vertex) - np.array(A)))
+
+        # Calculate the slope of AB
+        slope_AB = (closest_vertex[1] - A[1]) / (closest_vertex[0] - A[0])
+
+        # Handle the case of an infinite slope
+        if np.isinf(slope_AB):
+            # If the slope is infinite, xC is the same as A[0]
+            xC = A[0]
+            # Choose any arbitrary y-coordinate for C
+            yC = A[1] + 1
+        else:
+            # Calculate the perpendicular slope
+            slope_perpendicular = -1 / slope_AB
+            # Calculate the coordinates of point C
+            xC = A[0] + 1  # You can choose any arbitrary x-coordinate for C
+            yC = slope_perpendicular * (xC - A[0]) + A[1]
+
+        # Return the coordinates of point C
+        return xC, yC
+
+    def find_point_C(self,point_A, convex_region_coordinates):
         # Find the convex hull of the region
         hull = ConvexHull(convex_region_coordinates)
 
@@ -1142,10 +1233,10 @@ class Algo12:
         # If no intersection is found, return None or handle accordingly
         return None
 
-    def intersection_of_lines(self, vertical_line, horizontal_line, prev_point_of_pol, convex_region):
+    def intersection_of_lines(self,vertical_line, horizontal_line, prev_point_of_pol,convex_region):
         dime = self.container_instance.calculate_total_dimensions()
         p4 = self.find_perpendicular_point_on_convex_region2(prev_point_of_pol, convex_region)
-        print(prev_point_of_pol, convex_region)
+        print(prev_point_of_pol,convex_region)
         print(p4)
         angle_ch = self.calculate_angle_in_degrees(prev_point_of_pol, p4)
         angle_ch1 = (angle_ch + 180) % 360
@@ -1205,11 +1296,11 @@ class Algo12:
             elif not intersection4.is_empty:
                 return intersection4.x, intersection4.y
             else:
-                return (g1, g2), point2
+                return (g1,g2), point2
         else:
             return (g1, g2), point1
 
-    def intersection_of_lines2(self, vertical_line, horizontal_line, prev_point_of_pol, convex_region):
+    def intersection_of_lines2(self,vertical_line, horizontal_line, prev_point_of_pol,convex_region):
         dime = self.container_instance.calculate_total_dimensions()
         p4 = self.find_perpendicular_point_on_convex_region(prev_point_of_pol, convex_region)
         angle_ch = self.calculate_angle_in_degrees(prev_point_of_pol, p4)
@@ -1295,6 +1386,207 @@ class Algo12:
             print("here")
             return (g1, g2), point1
 
+    def intersection_of_lines3(self,vertical_line, horizontal_line, prev_point_of_pol,convex_region):
+        dime = self.container_instance.calculate_total_dimensions()
+        p4 = self.find_perpendicular_point_on_convex_region(prev_point_of_pol, convex_region)
+        angle_ch = self.calculate_angle_in_degrees(prev_point_of_pol, p4)
+        angle_ch1 = (angle_ch + 180) % 360
+        angle_ch2 = angle_ch % 360
+        vx, vy = (
+            math.cos(math.radians(angle_ch1)), math.sin(math.radians(angle_ch1)))
+        vx2, vy2 = (
+            math.cos(math.radians(angle_ch2)), math.sin(math.radians(angle_ch2)))
+        g1, g2 = prev_point_of_pol
+        point1 = self.calculate_endpoint_from_direction(g1, g2, vx, vy, dime)
+        point2 = self.calculate_endpoint_from_direction(g1, g2, vx2, vy2, dime)
+
+        # Define the coordinates of the endpoints of the two lines
+        hor = horizontal_line
+        vert = vertical_line
+        vertical_line = LineString(vertical_line)
+        horizontal_line = LineString(horizontal_line)
+        main_line1 = LineString([(g1, g2), point1])
+        main_line2 = LineString([(g1, g2), point2])
+
+        # Find the intersection point
+        intersection1 = vertical_line.intersection(main_line1)
+        intersection2 = horizontal_line.intersection(main_line1)
+        intersection3 = vertical_line.intersection(main_line2)
+        intersection4 = horizontal_line.intersection(main_line2)
+        pol = Polygon(convex_region)
+        len1 = 0
+        intersection_result1 = main_line1.intersection(pol)
+        intersection_type1 = type(intersection_result1)
+        if intersection_type1 == LineString:
+            len1 = intersection_result1.length
+        len2 = 0
+        intersection_result2 = main_line2.intersection(pol)
+        intersection_type2 = type(intersection_result2)
+        if intersection_type2 == LineString:
+            len2 = intersection_result2.length
+
+        if len1 > len2:
+            print("check1")
+            if not intersection1.is_empty and not intersection2.is_empty:
+                p1 = Point((g1, g2))
+                p2 = Point((intersection1.x, intersection1.y))
+                p3 = Point((intersection2.x, intersection2.y))
+                dis1 = p1.distance(p2)
+                dis2 = p1.distance(p3)
+                if dis1 < dis2:
+                    return (g1,g2) , point1
+                else:
+                    return (g1,g2) , point1
+            elif not intersection1.is_empty:
+                return (g1,g2) , point1
+            elif not intersection2.is_empty:
+                return (g1,g2) , point1
+            else:
+                print("type of ", type(main_line1.intersection(pol)))
+                intersection_result = main_line1.intersection(pol)
+                intersection_type = type(intersection_result)
+                if intersection_type == LineString:
+                    print(intersection_result.length)
+
+                print("here")
+                return (g1, g2), point1
+        elif len2 > len1:
+            print("check2")
+            if not intersection3.is_empty and not intersection4.is_empty:
+                p1 = Point((g1, g2))
+                p2 = Point((intersection3.x, intersection3.y))
+                p3 = Point((intersection4.x, intersection4.y))
+                dis1 = p1.distance(p2)
+                dis2 = p1.distance(p3)
+                if dis1 < dis2:
+                    return (g1,g2) , point2
+                else:
+                    return (g1,g2) , point2
+            elif not intersection3.is_empty:
+                return (g1,g2) , point2
+            elif not intersection4.is_empty:
+                return (g1,g2) , point2
+            else:
+                return (g1, g2), point2
+        else:
+            print("here")
+            return (g1, g2), point2
+
+    def extend_polygon(self,polygon, angle_degrees, distance):
+        polygon = Polygon(polygon)
+        # Convert angle to radians
+        angle_radians = radians(angle_degrees)
+
+        # Calculate the new x and y coordinates for each vertex
+        extended_vertices = [(x + distance * cos(angle_radians), y + distance * sin(angle_radians))
+                             for x, y in polygon.exterior.coords]
+
+        # Find the min and max x-coordinates of the original and extended vertices
+        min_x = min(coord[0] for coord in extended_vertices)
+        max_x = max(coord[0] for coord in extended_vertices)
+
+        # Create a rectangle that covers the entire width of the original polygon
+        extended_polygon = Polygon([(min_x, polygon.bounds[1]), (max_x, polygon.bounds[1]),
+                                    (max_x, polygon.bounds[3]), (min_x, polygon.bounds[3])])
+
+        return extended_polygon
+
+    def calculate_midpoint_bet_2_points(self,x1, y1, x2, y2):
+        midpoint_x = (x1 + x2) / 2
+        midpoint_y = (y1 + y2) / 2
+        return midpoint_x, midpoint_y
+
+    def find_weighted_point(self,x1, y1, x2, y2, t):
+        new_x = (1 - t) * x1 + t * x2
+        new_y = (1 - t) * y1 + t * y2
+        return new_x, new_y
+
+    def project_point_to_convex_edge(self,convex_region, interior_point):
+        """
+        Project a point inside a convex region onto the nearest edge of the convex hull.
+
+        Parameters:
+        convex_region (list of tuples): Vertices of the convex region in counter-clockwise order.
+        interior_point (tuple): Coordinates of the point inside the convex region.
+
+        Returns:
+        tuple: Coordinates of the projected point on the convex hull edge.
+        """
+        # Create a Shapely Polygon from the convex region
+        polygon = Polygon(convex_region)
+
+        # Create a Shapely Point for the interior point
+        point = Point(interior_point)
+
+        # Project the interior point onto the boundary of the convex hull
+        projected_point = polygon.exterior.interpolate(polygon.exterior.project(point))
+
+        return projected_point.x, projected_point.y
+
+    def project_point_to_convex_edge_angle(self, convex_region, interior_point, angle_degrees):
+        """
+        Project a point inside a convex region onto the nearest edge of the convex hull.
+
+        Parameters:
+        convex_region (list of tuples): Vertices of the convex region in counter-clockwise order.
+        interior_point (tuple): Coordinates of the point inside the convex region.
+        angle_degrees (float): Angle in degrees to guide the projection.
+
+        Returns:
+        tuple: Coordinates of the projected point on the convex hull edge.
+        """
+        # Create a Shapely Polygon from the convex region
+        polygon = Polygon(convex_region)
+
+        # Create a Shapely Point for the interior point
+        point = Point(interior_point)
+
+        # Convert angle from degrees to radians
+        angle_radians = math.radians(angle_degrees)
+
+        # Calculate the direction vector based on the given angle
+        direction_vector = (math.cos(angle_radians), math.sin(angle_radians))
+
+        # Get the centroid of the polygon's exterior (a single point on the convex hull)
+        centroid_point = polygon.exterior.centroid
+
+        # Project the interior point onto the boundary of the convex hull
+        projected_point = Point(centroid_point.x + direction_vector[0], centroid_point.y + direction_vector[1])
+
+        # Return the coordinates directly
+        return projected_point.x, projected_point.y
+    def min_radius_of_shape(self,points):
+        # Create a Shapely MultiPoint object
+        multi_point = MultiPoint(points)
+
+        # Get the minimum bounding rectangle
+        min_rectangle = multi_point.minimum_rotated_rectangle
+
+        # Calculate the minimum radius (half of the minimum bounding rectangle's diagonal)
+        min_radius = min_rectangle.exterior.length / 2.0
+
+        return min_radius
+
+    def count_crossings_with_convex_region(self,line, convex_region):
+        """
+            Count how many times a line crosses a convex region.
+
+            Parameters:
+            line (LineString): The line to check for crossings.
+            convex_region (Polygon): The convex region represented as a Polygon.
+
+            Returns:
+            int: Number of crossings.
+            """
+        # Break the line into segments using MultiLineString
+        segments = MultiLineString([line])
+
+        # Count the number of line segments that cross the exterior of the convex region
+        crossings = sum(segment.crosses(convex_region.exterior) for segment in segments)
+
+        return crossings
+
+
     def plot(self):
         angle = 0
         sorted_items = sorted(self.item_instances, key=lambda item: item.calculate_total_dimensions(), reverse=False)
@@ -1324,12 +1616,15 @@ class Algo12:
             if pol2.within(pol1):
                 if dex == 0:
                     extended_polygon, right_line, left_line = self.extend_pol_for_first_time(angle, polygon,
-                                                                                             middle_point)
+                                                                                               middle_point)
                     extended_polygon2, right_line2, left_line2 = self.extend_pol_for_first_time2(angle, polygon,
-                                                                                                 middle_point)
-                    l_p, r_p = self.find_points_that_intersect(left_line2, right_line2, convex_region)
+                                                                                             middle_point)
+                    l_p, r_p = self.find_points_that_intersect(left_line2, right_line2,convex_region)
                     polygon.left_intersection_point = l_p
                     polygon.right_intersection_point = r_p
+
+
+
 
                     f_p, t_p, list_of_lines, list_of_points = self.place_poly(polygon, extended_polygon, convex_region,
                                                                               angle, right_line, left_line)
@@ -1342,10 +1637,12 @@ class Algo12:
                     polygon.left_list = left_list
                     polygon.curr_angle = angle
 
-                    li = self.extend_pol(angle, convex_region, polygon)
+                    new_angle = self.calculate_angle_in_degrees(f_p, t_p)
+
+                    li = self.extend_pol(new_angle, convex_region, polygon)
 
                     list_of_new_region = self.for_edges_that_intersect(Polygon(convex_region),
-                                                                       Polygon(polygon.coordinates))
+                                                                       Polygon(li))
                     convex_region = list_of_new_region
                     middle_point = self.calculate_centroid(convex_region)
                     another_list.append(polygon)
@@ -1372,31 +1669,30 @@ class Algo12:
                                                               middle_point)
 
                         vertical_line, horizontal_line = self.create_lines(convex_region)
-
-                        p = self.intersection_of_lines2(vertical_line, horizontal_line,
-                                                        previous_polygon.left_intersection_point,
-                                                        convex_region_original)
                         """
-                        if dex >= 50:
-                            #temp_list.append(horizontal_line)
-                            #temp_list.append(vertical_line)
+                        if dex >= 243:
+                            temp_list.append(horizontal_line)
+                            temp_list.append(vertical_line)
 
-                           # one, to = self.intersection_of_lines2(vertical_line, horizontal_line,
-                                                          # previous_polygon.left_intersection_point, convex_region)
+                            one, to = self.intersection_of_lines3(vertical_line, horizontal_line,
+                                                                  previous_polygon.left_intersection_point,convex_region_original)
 
-                            one,to= p
-                            print("did it go in?",one, to)
-
+                            #one,to= p
 
                             copied8 = copy.deepcopy(polygon)
                             copied8.set_coordinates(convex_region)
                             an = []
                             an.append(copied8)
+                            an.append(previous_polygon)
+
 
                             temp_list.append([one, to])
-                            #print(p)
+                            print(one,to)
+                            # print(p)
                             temp_po.append(to)
                             temp_po.append(one)
+                            temp_po.append(previous_polygon.left_intersection_point)
+
                             draw_instance = Draw(self.container_instance, an, (1, 1), (1, 1), (1, 1),
                                                  (1, 1),
                                                  temp_po,
@@ -1408,147 +1704,394 @@ class Algo12:
                             temp_po.pop()
                             temp_po.pop()
                         """
+
+
+
+
+                        p = self.intersection_of_lines2(vertical_line, horizontal_line,
+                                                             previous_polygon.left_intersection_point, convex_region_original)
+                        deter_angle_point = self.calculate_angle_in_degrees(p,previous_polygon.left_intersection_point)
+
+
+
+                        sign_yes = False
+                        sign_yes_ver2 = False
+
                         new_x, new_y = p
+                        copied20 = copy.deepcopy(polygon)
+
 
                         check_co = polygon.move_item_value(new_x, new_y)
+                        #copied20.set_coordinates(check_co)
+
+                        from_point = None
 
                         pol_check = Polygon(check_co)
                         if pol_check.within(pol1):
                             polygon.move_item(new_x, new_y)
-                            middle_point_of_poly = new_x, new_y
                         else:
-                            middle_point_of_poly = x, y
+                            sign_yes = True
 
-                        points = self.check_if_line_cross(previous_polygon, polygon)
-                        # cen = self.calculate_centroid(polygon.coordinates)
-                        # right = self.check_ep2(ang, points,cen)
+
+                        flag000 = False
                         to_point_temp = None
                         to_point = None
-                        from_point = None
                         left_line2 = None
                         right_line2 = None
                         extended_pol2 = None
+                        left_line22 = None
+                        right_line22 = None
+                        extended_pol22 = None
+                        extended_poly_var2 = None
+                        right_line_var2 = None
+                        left_line_var2 = None
+                        angle_temp = None
 
-                        for point in points:
-                            line = []
-                            angle = self.calculate_angle_in_degrees(point, previous_polygon.left_point)
-                            while True:
-                                a, b, c = self.check_ep(angle, previous_polygon, point)
-                                angle = self.calculate_angle_in_degrees(point, a)
-                                l = LineString([point, a])
-                                p = Polygon(previous_polygon.coordinates)
-                                p = p.buffer(0.1)
-                                if not l.crosses(p):
-                                    to_point_temp = a
-                                    # angle = angle_before
-                                    break
 
-                            angle = (angle + 0.01 % 360)
 
-                            flag, d1, d2, d3, d4, d5, d6, extended_poly, right_li, left_li = self.placement(
-                                angle,
-                                polygon.coordinates,
-                                previous_polygon, middle_point_of_poly)
 
-                            print(flag)
+                        while not flag000:
 
-                            line.append([point, a])
-                            poi.append(point)
-                            poi.append(a)
+                            points = self.check_if_line_cross(previous_polygon, polygon)
+                            # cen = self.calculate_centroid(polygon.coordinates)
+                            # right = self.check_ep2(ang, points,cen)
+                            for point in points:
+                                line = []
+                                angle = self.calculate_angle_in_degrees(point, previous_polygon.left_point)
+                                while True:
+                                    a, b, c = self.check_ep(angle, previous_polygon, point)
+                                    angle = self.calculate_angle_in_degrees(point, a)
+                                    l = LineString([point, a])
+                                    p = Polygon(previous_polygon.coordinates)
+                                    p = p.buffer(0.1)
+                                    if not l.crosses(p):
+                                        to_point_temp = a
+                                        from_point = point
+                                        # angle = angle_before
+                                        break
 
-                            copied2 = copy.deepcopy(polygon)
-                            copied2.set_coordinates(convex_region)
-                            copied.set_coordinates(extended_poly.exterior.coords)
-                            another_list.append(copied)
-                            another_list.append(polygon)
-                            aru = []
-                            aru.append(copied)
-                            aru.append(copied2)
-                            aru.append(polygon)
-                            # aru.append(previous_polygon)
-                            if dex >= 10000:
-                                draw_instance = Draw(self.container_instance, aru, (1, 1), (1, 1), (1, 1),
-                                                     (1, 1),
-                                                     poi,
-                                                     None,
-                                                     None, line)
-                                draw_instance.plot()
+                                angle = (angle + 0.01 % 360)
 
-                            another_list.pop()
-                            another_list.pop()
-
-                            if flag:
-                                flag2, d12, d22, d32, d42, d52, d62, extended_poly2, right_li2, left_li2 = self.placement2(
+                                flag, d1, d2, d3, d4, d5, d6, extended_poly, right_li, left_li = self.placement(
                                     angle,
                                     polygon.coordinates,
-                                    previous_polygon, middle_point_of_poly)
-                                sec_flag = True
-                                extended_polygon = extended_poly
-                                right_line = right_li
-                                left_line = left_li
-                                left_line2 = left_li2
-                                right_line2 = right_li2
-                                extended_pol2 = extended_poly2
+                                    previous_polygon)
 
-                                from_point = point
-                                to_point = to_point_temp
+                                print(flag)
+
+                                line.append([point, a])
+                                poi.append(point)
+                                poi.append(a)
+
+                                copied2 = copy.deepcopy(polygon)
+                                #copied24 = copy.deepcopy(polygon)
+                                #copied24.move_from_to2(from_point, (new_x, new_y))
+
+
+                                copied2.set_coordinates(convex_region)
+
+                                copied.set_coordinates(extended_poly.exterior.coords)
+                                another_list.append(copied)
+                                another_list.append(polygon)
+                                aru = []
+                                poi.append(from_point)
+                                aru.append(copied)
+                                aru.append(copied2)
+                                aru.append(polygon)
+                                aru.append(previous_polygon)
+                                if dex >= 1000:
+                                    draw_instance = Draw(self.container_instance, aru, (1, 1), (1, 1), (1, 1),
+                                                         (1, 1),
+                                                         poi,
+                                                         None,
+                                                         None, line)
+                                    draw_instance.plot()
+
+                                another_list.pop()
+                                another_list.pop()
+
+                                if flag:
+                                    flag2, d12, d22, d32, d42, d52, d62, extended_poly2, right_li2, left_li2 = self.placement2(
+                                        angle,
+                                        polygon.coordinates,
+                                        previous_polygon)
+                                    sec_flag = True
+                                    extended_polygon = extended_poly
+                                    right_line = right_li
+                                    left_line = left_li
+                                    left_line2 = left_li2
+                                    right_line2 = right_li2
+                                    extended_pol2 = extended_poly2
+
+                                    from_point = point
+                                    to_point = to_point_temp
+                                    break
+                            if sign_yes:
                                 break
-                        dist = float('inf')
-                        pp1 = Point(to_point_temp)
-                        our_best_point = None
+                            elif not sign_yes:
+                                check_co2 = polygon.move_from_to2_value(from_point, (new_x, new_y))
+                                pol_check2 = Polygon(check_co2)
+                                if pol_check2.within(pol1):
+                                    polygon.move_from_to2(from_point, (new_x, new_y))
+                                    points = self.check_if_line_cross(previous_polygon, polygon)
+                                    # cen = self.calculate_centroid(polygon.coordinates)
+                                    # right = self.check_ep2(ang, points,cen)
+                                    for point in points:
+                                        line = []
+                                        angle = self.calculate_angle_in_degrees(point, previous_polygon.left_point)
+                                        l = LineString([point, previous_polygon.left_point])
+                                        p = Polygon(previous_polygon.coordinates)
+                                        p = p.buffer(0.1)
+                                        if l.crosses(p):
+                                            while True:
+                                                if dex >= 10000:
+                                                    another_poitn = []
+                                                    another_linin = []
+                                                    another_list.append(polygon)
+                                                    copied24 = copy.deepcopy(polygon)
+                                                    copied24.set_coordinates(p.exterior.coords)
+                                                    another_list.append(polygon)
+                                                    another_list.append(copied24)
 
-                        for point_of in points:
-                            pp2 = Point(point_of)
-                            di = pp1.distance(pp2)
-                            if di < dist:
-                                dist = di
-                                our_best_point = point_of
+                                                    another_poitn.append(point)
+                                                    another_poitn.append(a)
+                                                    another_linin.append([point, a])
 
-                        check_co = polygon.move_item_by_dis_and_angle_value(dist, angle)
+                                                    print(point)
+                                                    print(a)
 
-                        pol_check = Polygon(check_co)
-                        if pol_check.within(pol1):
-                            polygon.move_item_by_dis_and_angle(dist, angle)
-                            middle_point_of_poly = self.calculate_centroid(polygon.coordinates)
-                            flag3, d13, d23, d33, d43, d53, d63, extended_poly3, right_li3, left_li3 = self.placement(
-                                angle,
-                                polygon.coordinates,
-                                previous_polygon, middle_point_of_poly)
-                            right_line = right_li3
-                            left_line = left_li3
-                            extended_polygon = extended_poly3
-                            flag2, d12, d22, d32, d42, d52, d62, extended_poly2, right_li2, left_li2 = self.placement2(
-                                angle,
-                                polygon.coordinates,
-                                previous_polygon, middle_point_of_poly)
-                            left_line2 = left_li2
-                            right_line2 = right_li2
-                            extended_pol2 = extended_poly2
+                                                    draw_instance = Draw(self.container_instance, another_list, (1, 1),
+                                                                         (1, 1),
+                                                                         (1, 1),
+                                                                         (1, 1),
+                                                                         another_poitn,
+                                                                         None,
+                                                                         None, another_linin)
+                                                    draw_instance.plot()
+                                                    another_poitn.pop()
+                                                    another_poitn.pop()
+                                                    another_linin.pop()
+                                                    another_list.pop()
+                                                    another_list.pop()
+                                                a, b, c = self.check_ep(angle, previous_polygon, point)
+                                                angle = self.calculate_angle_in_degrees(point, a)
+                                                dime = self.container_instance.calculate_total_dimensions()
+                                                xx, yy = point
+                                                this_angle = (angle + 0.01 % 360)
+                                                vx, vy = (
+                                                    math.cos(math.radians(this_angle)),
+                                                    math.sin(math.radians(this_angle)))
+                                                xxx, yyy = self.calculate_endpoint_from_direction(xx, yy, vx, vy, dime)
+                                                l = LineString([point, (xxx, yyy)])
+                                                if not l.crosses(p):
+                                                    to_point_temp = a
+                                                    from_point = point
+                                                    # angle = angle_before
+                                                    break
+                                        angle = (angle + 0.01 % 360)
+                                        if dex == 512:
+                                            print("before",angle)
+                                            print("after",self.calculate_angle_in_degrees(point, a)+0.01)
 
-                        """
-                        if dex >= 290:
-                            another_list.append(polygon)
+                                        flag_new, d1_new, d2_new, d3_new, d4_new, d5_new, d6_new, extended_poly_new, right_li_new, left_li_new = self.placement(
+                                            angle,
+                                            polygon.coordinates,
+                                            previous_polygon)
 
-                            draw_instance = Draw(self.container_instance, another_list, (1, 1), (1, 1), (1, 1),
-                                                 (1, 1),
-                                                 None,
-                                                 None,
-                                                 None, None)
-                            draw_instance.plot()
-                            another_list.pop()
-                        """
+                                        print(flag_new)
+
+
+                                        copied2 = copy.deepcopy(polygon)
+                                        # copied24 = copy.deepcopy(polygon)
+                                        # copied24.move_from_to2(from_point, (new_x, new_y))
+
+                                        copied2.set_coordinates(convex_region)
+                                        copied.set_coordinates(extended_poly_new.exterior.coords)
+                                        another_list.append(copied)
+                                        another_list.append(polygon)
+                                        aru = []
+                                        aru.append(copied)
+                                        aru.append(copied2)
+                                        aru.append(polygon)
+                                        aru.append(previous_polygon)
+                                        if dex >= 512:
+                                            line.append([point, a])
+                                            poi.append(point)
+                                            poi.append(a)
+                                            poi.append(from_point)
+
+
+                                            draw_instance = Draw(self.container_instance, another_list, (1, 1), (1, 1), (1, 1),
+                                                                 (1, 1),
+                                                                 poi,
+                                                                 None,
+                                                                 None, line)
+                                            draw_instance.plot()
+                                            line.pop()
+                                            poi.pop()
+                                            poi.pop()
+                                            poi.pop()
+
+
+                                        another_list.pop()
+                                        another_list.pop()
+
+                                        if flag_new:
+                                            flag4, d14, d24, d34, d44, d54, d64, extended_poly4, right_li4, left_li4 = self.placement2(
+                                                angle,
+                                                polygon.coordinates,
+                                                previous_polygon)
+                                            sec_flag = True
+                                            extended_polygon = extended_poly_new
+                                            right_line = right_li_new
+                                            left_line = left_li_new
+                                            left_line2 = left_li4
+                                            right_line2 = right_li4
+                                            extended_pol2 = extended_poly4
+                                            break
+
+
+                                if sign_yes:
+                                    break
+                                elif not sign_yes:
+                                    points = self.check_if_line_cross(previous_polygon, copied20)
+
+                                    for point in points:
+                                        line = []
+                                        angle_temp = self.calculate_angle_in_degrees(point, previous_polygon.left_point)
+                                        while True:
+                                            a, b, c = self.check_ep(angle_temp, previous_polygon, point)
+                                            angle_temp = self.calculate_angle_in_degrees(point, a)
+                                            l = LineString([point, a])
+                                            p = Polygon(previous_polygon.coordinates)
+                                            p = p.buffer(0.1)
+                                            if not l.crosses(p):
+                                                to_point_temp = a
+                                                break
+
+                                        angle_temp = (angle_temp + 0.01 % 360)
+
+                                        flag_temp, d1_temp, d2_temp, d3_temp, d4_temp, d5_temp, d6_temp, extended_poly_temp, right_li_temp, left_li_temp = self.placement(
+                                            angle_temp,
+                                            copied20.coordinates,
+                                            previous_polygon)
+
+                                        line.append([point, a])
+                                        poi.append(point)
+                                        poi.append(a)
+
+                                        copied2 = copy.deepcopy(copied20)
+                                        copied2.set_coordinates(convex_region)
+                                        copied.set_coordinates(extended_poly_temp.exterior.coords)
+                                        another_list.append(copied)
+                                        another_list.append(copied20)
+                                        aru = []
+                                        aru.append(copied)
+                                        aru.append(copied2)
+                                        aru.append(copied20)
+                                        # aru.append(previous_polygon)
+                                        """
+                                        if dex >= 13:
+                                            draw_instance = Draw(self.container_instance, aru, (1, 1), (1, 1), (1, 1),
+                                                                 (1, 1),
+                                                                 poi,
+                                                                 None,
+                                                                 None, line)
+                                            draw_instance.plot()
+                                        """
+
+                                        another_list.pop()
+                                        another_list.pop()
+
+                                        if flag_temp:
+                                            sec_flag = True
+                                            extended_poly_var2 = extended_poly_temp
+                                            right_line_var2 = right_li_temp
+                                            left_line_var2 = left_li_temp
+
+                                            flag2_temp, d12_temp, d22_temp, d32_temp, d42_temp, d52_temp, d62_temp, extended_poly2_temp, right_li2_temp, left_li2_temp = self.placement2(
+                                                angle_temp,
+                                                copied20.coordinates,
+                                                previous_polygon)
+                                            left_line22 = left_li2_temp
+                                            right_line22 = right_li2_temp
+                                            extended_pol22 = extended_poly2_temp
+                                            break
+
+                                    ppol1 = Polygon(polygon.coordinates)
+                                    # ppol2 = Polygon(previous_polygon.coordinates)
+                                    point_of_intersection = left_line22.intersection(left_line)
+                                    point_of_intersection2 = right_line22.intersection(left_line)
+
+                                    dist = ppol1.distance(point_of_intersection)
+                                    dist2 = ppol1.distance(point_of_intersection2)
+                                    if dist2 < dist:
+                                        dist = dist2
+                                    flag000, (px000, py000), p00, (px200, py200), p000, (cx000, cy000), (
+                                        x100, y100), filled_polygon000, right_line000, left_line000 = self.placement3(
+                                        angle,
+                                        polygon.coordinates,
+                                        convex_region,
+                                        dist,
+                                        dist)
+                                    if dex >= 1000:
+                                        listtt = []
+                                        listtt.append(list(left_line22.coords))
+                                        listtt.append(list(right_line22.coords))
+
+                                        listtt.append(list(left_line.coords))
+                                        print(flag000)
+                                        copied90 = copy.deepcopy(polygon)
+                                        copied90.set_coordinates(filled_polygon000.exterior.coords)
+                                        another_list.append(copied90)
+
+                                        draw_instance = Draw(self.container_instance, another_list, (1, 1), (1, 1),
+                                                             (1, 1),
+                                                             (1, 1),
+                                                             None,
+                                                             None,
+                                                             None, listtt)
+                                        draw_instance.plot()
+                                    if not flag000:
+                                        print("*************************************************8")
+                                        polygon.set_coordinates(copied20.coordinates)
+
+                                        extended_polygon = extended_poly_var2
+                                        right_line = right_line_var2
+                                        left_line = left_line_var2
+                                        left_line2 = left_line22
+                                        right_line2 = right_line22
+                                        extended_pol2 = extended_pol22
+                                        angle = angle_temp
+
+                                        sec_flag = True
+
+                                        break
+                                    else:
+                                        break
+
+
+
 
                         if sec_flag:
                             f_p, t_p, list_of_lines, list_of_points = self.place_poly(polygon, extended_polygon,
                                                                                       convex_region, angle, right_line,
                                                                                       left_line)
                             l_p, r_p = self.find_points_that_intersect(left_line2, right_line2, convex_region_original)
-                            polygon.left_intersection_point = l_p
+
+                            #polygon.left_intersection_point = l_p
                             polygon.right_intersection_point = r_p
                             polygon.extended_pol = extended_pol2
                             polygon.move_from_to2(f_p, t_p)
                             another_list.append(polygon)
-                            the_point, sec_point, left_list = self.check_ep(angle, polygon, middle_point_of_poly)
+                            mid_of_ol = self.calculate_centroid(polygon.coordinates)
+                            the_point, sec_point, left_list = self.check_ep(angle, polygon, middle_point)
+
+                            new_l_p = self.project_point_to_convex_edge(convex_region_original, the_point)
+
+                            polygon.left_intersection_point = new_l_p
+
+                            print("the new left point",new_l_p,dex)
 
                             polygon.left_point = the_point
                             # polygon.sec_left_point = sec_point
@@ -1557,18 +2100,23 @@ class Algo12:
                             polygon.curr_angle = angle
 
                             previous_polygon = polygon
-                            if dex >= 300:
+                            if dex >= 600:
+                                temp_li_of_po = []
+                                temp_li_of_po.append(new_l_p)
+                                temp_li_of_po.append(the_point)
+
+
+
                                 draw_instance = Draw(self.container_instance, another_list, (1, 1), (1, 1), (1, 1),
                                                      (1, 1),
                                                      None,
                                                      None,
                                                      None, None)
                                 draw_instance.plot()
-
-                            li = self.extend_pol(angle, convex_region, polygon)
+                            li = self.extend_pol(deter_angle_point, convex_region, polygon)
 
                             list_of_new_region = self.for_edges_that_intersect(Polygon(convex_region),
-                                                                               Polygon(polygon.coordinates))
+                                                                               Polygon(li))
                             convex_region = list_of_new_region
                             middle_point = self.calculate_centroid(convex_region)
 
@@ -1584,6 +2132,7 @@ class Algo12:
                              None,
                              None, None)
         draw_instance.plot()
+
 
 
 

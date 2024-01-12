@@ -355,9 +355,11 @@ class Algo25:
                     print("in check LineString")
 
                     if new_line.intersects(intersection):
-                        return True,list_of
+                        print("dors it intrescet line")
+                        return True, list_of
                     else:
-                        return False,list_of
+                        list_of.append(list(intersection.coords))
+                        return False, list_of
 
                 elif intersection.geom_type == "MultiLineString":
                     print("in check MultiLineString")
@@ -2295,6 +2297,7 @@ class Algo25:
         value = 0
         start_time = time.time()
         previous_polygon = None
+        tri_index = 0
 
         for dex, polygon in enumerate(sorted_items):
             if dex == 700:
@@ -2312,22 +2315,36 @@ class Algo25:
                 if dex == 0:
                     extended_polygon, right_line, left_line = self.extend_pol_for_first_time(angle, polygon,
                                                                                                middle_point)
-                    extended_polygon2, right_line2, left_line2 = self.extend_pol_for_first_time2(angle, polygon,
-                                                                                             middle_point)
-                    l_p, r_p = self.find_points_that_intersect(left_line2, right_line2,convex_region)
-                    polygon.left_intersection_point = l_p
-                    polygon.right_intersection_point = r_p
 
                     f_p, t_p, list_of_lines, list_of_points = self.place_poly(polygon, extended_polygon, convex_region,
                                                                               angle, right_line, left_line)
                     polygon.move_from_to2(f_p, t_p)
                     the_point, sec_point, left_list = self.check_ep(angle, polygon, middle_point)
                     polygon.left_point = the_point
+                    tri_index = 0
+                    tri_flag = False
+                    for triangle in triangle_list:
+                        tri = Polygon(triangle)
+                        leftest_p = Point(the_point)
+                        if leftest_p.within(tri):
+                            tri_flag = True
+                            polygon.tri_index = tri_index
+                            break
+                        tri_index = ((tri_index + 1) % len(triangle_list))
+
+                    new_l_p = None
+                    if tri_flag:
+                        convex_region_edge = edges_list[tri_index]
+                        new_l_p = self.project_point_to_linestring_edge_new(convex_region_edge, the_point)
+                    elif not tri_flag:
+                        new_l_p = self.project_point_to_convex_edge(convex_region_original, the_point)
+                    polygon.left_intersection_point = new_l_p
+
 
                     # polygon.sec_left_point = sec_point
                     # left_list = self.check_ep2(angle, polygon)
-                    polygon.left_list = left_list
-                    polygon.curr_angle = angle
+                    #polygon.left_list = left_list
+                    #polygon.curr_angle = angle
                     polygon.the_point = the_point
 
                     new_angle = self.calculate_angle_in_degrees(f_p, t_p)
@@ -2381,7 +2398,6 @@ class Algo25:
                         p = self.intersection_of_lines4(vertical_line, horizontal_line,
                                                              previous_polygon.left_intersection_point,previous_polygon.the_point, convex_region_original)
 
-                        print("what is th p",p)
                         deter_angle_point = self.calculate_angle_in_degrees(p,previous_polygon.left_intersection_point)
 
                         sign_yes = False
@@ -2402,9 +2418,10 @@ class Algo25:
                                 if j_index == 1:
                                     check_co2 = polygon.move_from_to2_value(from_point, (new_x, new_y))
                                     pol_check2 = Polygon(check_co2)
-                                    if pol_check2.within(pol1):
-                                        polygon.move_from_to2(from_point, (new_x, new_y))
 
+                                    if pol_check2.within(pol1):
+                                        print("was it here")
+                                        polygon.move_from_to2(from_point, (new_x, new_y))
                                     else:
                                         sign_yes = True
                                         break
@@ -2461,8 +2478,8 @@ class Algo25:
                                     aru.append(copied2)
                                     aru.append(polygon)
                                     # aru.append(previous_polygon)
-                                    if dex >= 1000:
-                                        draw_instance = Draw(self.container_instance, aru, (1, 1), (1, 1), (1, 1),
+                                    if dex >= 14:
+                                        draw_instance = Draw(self.container_instance, another_list, (1, 1), (1, 1), (1, 1),
                                                              (1, 1),
                                                              poi,
                                                              None,
@@ -2499,7 +2516,22 @@ class Algo25:
                             newlinestring = LineString([list(right_line000.coords)[1],list(left_line000.coords)[1]])
 
                             new_flag,line_of_newlinestring = self.check_first_line_string(polygon.coordinates, filled_polygon000, convex_region, angle,newlinestring)
+                            if dex >= 14:
+                                listtt = []
+                                listtt.append(list(left_line000.coords))
+                                listtt.append(list(right_line000.coords))
 
+                                print(flag000)
+                                copied90 = copy.deepcopy(polygon)
+                                copied90.set_coordinates(filled_polygon000.exterior.coords)
+                                another_list.append(copied90)
+
+                                draw_instance = Draw(self.container_instance, another_list, (1, 1), (1, 1), (1, 1),
+                                                     (1, 1),
+                                                     None,
+                                                     None,
+                                                     None, line_of_newlinestring)
+                                draw_instance.plot()
                             if not new_flag:
                                 print("*************************************************8")
                                 polygon.set_coordinates(polygon_var2.coordinates)
@@ -2523,15 +2555,26 @@ class Algo25:
                             another_list.append(polygon)
                             the_point, sec_point, left_list = self.check_ep(angle, polygon, middle_point)
 
-                            tri_index = 0
                             tri_flag = False
-                            for triangle in triangle_list:
-                                tri = Polygon(triangle)
-                                leftest_p = Point(the_point)
-                                if leftest_p.within(tri):
-                                    tri_flag = True
-                                    break
-                                tri_index = tri_index+1
+                            tri_curr = Polygon(triangle_list[tri_index % len(triangle_list)])
+                            tri_next = Polygon(triangle_list[((tri_index + 1) % len(triangle_list))])
+
+                            leftest_p = Point(the_point)
+                            if leftest_p.within(tri_curr):
+                                tri_flag = True
+                            elif leftest_p.within(tri_next):
+                                tri_index = ((tri_index + 1) % len(triangle_list))
+                                tri_flag = True
+                            else:
+                                tri_index = 0
+                                for triangle in triangle_list:
+                                    tri = Polygon(triangle)
+                                    leftest_p = Point(the_point)
+                                    if leftest_p.within(tri):
+                                        tri_flag = True
+                                        break
+                                    tri_index = ((tri_index + 1) % len(triangle_list))
+
                             new_l_p = None
                             if tri_flag:
                                 convex_region_edge = edges_list[tri_index]
@@ -2546,7 +2589,7 @@ class Algo25:
                             polygon.the_point = the_point
 
 
-                            if dex >= 700:
+                            if dex >= 257:
 
                                 ppp = []
                                 ppp.append(new_l_p)
