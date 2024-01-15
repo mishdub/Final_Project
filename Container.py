@@ -16,6 +16,8 @@ class Container:
         self.min_x = min(x_coords)
         self.min_y = min(y_coords)
         self.grid_coordinates = []
+        self.middle = None
+
 
 
 

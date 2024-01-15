@@ -1,5 +1,7 @@
 from shapely import box
 import math
+from shapely.geometry import Polygon
+
 
 class Item:
     def __init__(self, quantity, value, x_coords, y_coords):
@@ -16,6 +18,27 @@ class Item:
         self.x = None
         self.y = None
         self.Box = None
+        self.left_point = None
+        self.right_point = None
+        self.left_list = None
+        self.curr_angle = None
+        self.left_intersection_point = None
+        self.right_intersection_point = None
+        self.extended_pol = None
+        self.extended_polygon = None
+        self.left_line = None
+        self.right_line = None
+        self.the_point = None
+        self.leftline = None
+        self.rightline = None
+        self.tri_index = None
+        self.polygon_var2 =None
+        self.left_point_temp = None
+        self.p_point = None
+        self.sign = None
+
+
+
 
 
     def extended_dime(self, coordinates):
@@ -38,6 +61,7 @@ class Item:
             height = max_y - min_y
 
             return min(width, height)
+
 
 
     def calculate_regular_polygon_area(self):
@@ -250,9 +274,12 @@ class Item:
 
     def move_item(self, new_center_x, new_center_y):
         # Calculate the current center point of the item
-        current_center_x = (self.max_x + self.min_x) / 2
-        current_center_y = (self.max_y + self.min_y) / 2
+        convex_polygon = Polygon(self.coordinates)
 
+        # Calculate the centroid of the convex polygon
+        centroid = convex_polygon.centroid
+        current_center_x = centroid.x
+        current_center_y = centroid.y
         # Calculate the translation vector to move the center to the new position
         translation_x = new_center_x - current_center_x
         translation_y = new_center_y - current_center_y
@@ -469,9 +496,12 @@ class Item:
         self.min_x = new_leftmost_x
 
     def move_item_value(self, new_center_x, new_center_y):
-        # Calculate the current center point of the item
-        current_center_x = (self.max_x + self.min_x) / 2
-        current_center_y = (self.max_y + self.min_y) / 2
+        convex_polygon = Polygon(self.coordinates)
+
+        # Calculate the centroid of the convex polygon
+        centroid = convex_polygon.centroid
+        current_center_x = centroid.x
+        current_center_y = centroid.y
 
         # Calculate the translation vector to move the center to the new position
         translation_x = new_center_x - current_center_x
@@ -724,6 +754,16 @@ class Item:
         self.x = point_of_region[0]
         self.y = point_of_region[1]
 
+    def move_from_to2_f_p_value(self, point_of_pol, point_of_region):
+        # Calculate the translation vector
+        translation_x = point_of_region[0] - point_of_pol[0]
+        translation_y = point_of_region[1] - point_of_pol[1]
+
+
+        return (point_of_pol[0] + translation_x), (point_of_pol[1] + translation_y)
+
+
+
 
     def move_from_to2_value(self, point_of_pol, point_of_region):
         # Calculate the translation vector
@@ -794,3 +834,98 @@ class Item:
         # Update all coordinates by adding the translation vector
         return [(x + translation_x, y + translation_y) for x, y in self.coordinates]
 
+    def move_item_by_dis_and_angle(self, distance, angle_degrees):
+        # Convert angle from degrees to radians
+        angle_radians = math.radians(angle_degrees)
+
+        # Calculate the current center point of the item
+        convex_polygon = Polygon(self.coordinates)
+
+        # Calculate the centroid of the convex polygon
+        centroid = convex_polygon.centroid
+        current_center_x = centroid.x
+        current_center_y = centroid.y
+
+        # Calculate the new position using polar coordinates
+        new_center_x = current_center_x + distance * math.cos(angle_radians)
+        new_center_y = current_center_y + distance * math.sin(angle_radians)
+
+        # Calculate the translation vector to move the center to the new position
+        translation_x = new_center_x - current_center_x
+        translation_y = new_center_y - current_center_y
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+        self.max_x = max(self.x_coords)
+        self.max_y = max(self.y_coords)
+        self.min_x = min(self.x_coords)
+        self.min_y = min(self.y_coords)
+
+
+    def move_item_by_dis_and_angle_value(self, distance, angle_degrees):
+        # Convert angle from degrees to radians
+        angle_radians = math.radians(angle_degrees)
+
+        # Calculate the current center point of the item
+        convex_polygon = Polygon(self.coordinates)
+
+        # Calculate the centroid of the convex polygon
+        centroid = convex_polygon.centroid
+        current_center_x = centroid.x
+        current_center_y = centroid.y
+
+        # Calculate the new position using polar coordinates
+        new_center_x = current_center_x + distance * math.cos(angle_radians)
+        new_center_y = current_center_y + distance * math.sin(angle_radians)
+
+        # Calculate the translation vector to move the center to the new position
+        translation_x = new_center_x - current_center_x
+        translation_y = new_center_y - current_center_y
+
+        # Update all coordinates by adding the translation vector
+        return [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+
+    def move_item_by_dis_and_angle_value2(self, distance, angle_degrees):
+        # Convert angle from degrees to radians
+        angle_radians = math.radians(angle_degrees)
+
+        # Calculate the current center point of the item
+        convex_polygon = Polygon(self.coordinates)
+
+        # Calculate the centroid of the convex polygon
+        centroid = convex_polygon.centroid
+        current_center_x = centroid.x
+        current_center_y = centroid.y
+
+        # Calculate the new position using polar coordinates
+        new_center_x = current_center_x + distance * math.cos(angle_radians)
+        new_center_y = current_center_y + distance * math.sin(angle_radians)
+
+        # Calculate the translation vector to move the center to the new position
+        translation_x = new_center_x - current_center_x
+        translation_y = new_center_y - current_center_y
+
+        # Update all coordinates by adding the translation vector
+        return [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+
+    def move_to_rectangle(self, rectangle_coords):
+        # Create Shapely Polygons from the given coordinates
+        item_polygon = Polygon(self.coordinates)
+        rectangle = Polygon(rectangle_coords)
+
+        # Get the centroid of the rectangle
+        rectangle_centroid = rectangle.centroid
+
+        # Calculate the translation vector
+        translation_vector = (rectangle_centroid.x - item_polygon.centroid.x, rectangle_centroid.y - item_polygon.centroid.y)
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_vector[0], y + translation_vector[1]) for x, y in self.coordinates]
+        self.x_coords = [x + translation_vector[0] for x in self.x_coords]
+        self.y_coords = [y + translation_vector[1] for y in self.y_coords]
+        self.max_x = max(self.x_coords)
+        self.max_y = max(self.y_coords)
+        self.min_x = min(self.x_coords)
+        self.min_y = min(self.y_coords)

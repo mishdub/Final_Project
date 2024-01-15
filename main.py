@@ -13,6 +13,63 @@ from Algo3 import Algo3
 from Algo4 import Algo4
 from Algo6 import Algo6
 from Algo7 import Algo7
+from Algo8 import Algo8
+from Algo9 import Algo9
+from Algo10 import Algo10
+from Algo11 import Algo11
+from Algo12 import Algo12
+from Algo13 import Algo13
+from Algo14 import Algo14
+from Algo15 import Algo15
+from Algo16 import Algo16
+from Algo17 import Algo17
+from Algo18 import Algo18
+from Algo19 import Algo19
+from Algo20 import Algo20
+from Algo21 import Algo21
+from Algo22 import Algo22
+from Algo23 import Algo23
+from Algo24 import Algo24
+from Algo25 import Algo25
+from Algo26 import Algo26
+from Algo27 import Algo27
+from Algo28 import Algo28
+from Algo29 import Algo29
+from Algo30 import Algo30
+from Algo31 import Algo31
+from Algo32 import Algo32
+from Algo33 import Algo33
+from Algo34 import Algo34
+from Algo35 import Algo35
+from Algo36 import Algo36
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 import pygame
@@ -801,9 +858,10 @@ def main():
     """
 
 
-    Algo_instance = Algo4(container_instance, item_instances)
+    Algo_instance = Algo36(container_instance, item_instances)
 
-    Algo_instance.plot7()
+    Algo_instance.plot()
+
 
     """
     # Initialize Pygame

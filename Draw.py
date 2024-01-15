@@ -4,7 +4,7 @@ import numpy as np
 import random
 
 class Draw:
-    def __init__(self, container_instance, item_instances, p1, p2, t1, t2,exterior_coords_list,angle1,angle2):
+    def __init__(self, container_instance, item_instances, p1, p2, t1, t2,exterior_coords_list,angle1,angle2,list_of_lines):
         self.container_instance = container_instance
         self.item_instances = item_instances
         self.p1 = p1
@@ -14,6 +14,7 @@ class Draw:
         self.exterior_coords_list = exterior_coords_list
         self.angle1 = angle1
         self.angle2 = angle2
+        self.list_of_lines = list_of_lines
 
     def plot(self):
         container_x = self.container_instance.x_coords
@@ -29,6 +30,11 @@ class Draw:
         # Plot items
         for x_coords, y_coords in zip(item_x_coords, item_y_coords):
             plt.plot(x_coords + [x_coords[0]], y_coords + [y_coords[0]], 'r-', label='Item')
+
+        if self.list_of_lines is not None:
+            for points in self.list_of_lines:
+                x, y = zip(*points)
+                plt.plot(x, y, 'g-', label='Line1')
 
         x1,y1 = self.p1
         x2,y2 = self.p2
@@ -66,10 +72,11 @@ class Draw:
             y_boundary = m2 * x_boundary + b2
             plt.plot(x_boundary, y_boundary, 'm-', label=f'Angle 2: {self.angle2} degrees')
         # Plot custom point if provided
-        """
+
         if self.exterior_coords_list:
             for (x, y) in self.exterior_coords_list:
                 plt.plot(x, y, 'ro', label="my point")
+        """
         elif not self.exterior_coords_list:
             x, y = self.p1
             plt.plot(x, y, 'go', label="my point")
