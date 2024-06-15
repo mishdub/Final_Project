@@ -42,6 +42,32 @@ from Algo33 import Algo33
 from Algo34 import Algo34
 from Algo35 import Algo35
 from Algo36 import Algo36
+from Algo37 import Algo37
+from Algo38 import Algo38
+from Algo39 import Algo39
+from Algo40 import Algo40
+from Algo41 import Algo41
+from Algo42 import Algo42
+from Algo43 import Algo43
+from Algo44 import Algo44
+from Algo45 import Algo45
+from Algo46 import Algo46
+from Algo48 import Algo48
+from Algo49 import Algo49
+from Algo50 import Algo50
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -89,18 +115,6 @@ from shapely.geometry import Polygon
 
 from shapely import normalize, Polygon, coverage_union, overlaps,distance,LineString,hausdorff_distance
 from shapely.ops import unary_union
-
-
-
-
-
-
-
-
-
-
-
-
 
 def load_json(filename):
     with open(filename, 'r') as file:
@@ -858,7 +872,7 @@ def main():
     """
 
 
-    Algo_instance = Algo36(container_instance, item_instances)
+    Algo_instance = Algo50(container_instance, item_instances)
 
     Algo_instance.plot()
 

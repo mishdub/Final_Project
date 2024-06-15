@@ -19,8 +19,6 @@ class Container:
         self.middle = None
 
 
-
-
     def calculate_width(self):
         """
         Calculate and return the width of the item based on its coordinates.

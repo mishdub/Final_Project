@@ -3,6 +3,7 @@ import math
 from shapely.geometry import Polygon
 
 
+
 class Item:
     def __init__(self, quantity, value, x_coords, y_coords):
         self.coordinates = list(zip(x_coords, y_coords))
@@ -261,7 +262,7 @@ class Item:
         min_y_point = min(self.coordinates, key=lambda point: point[1])
         return min_y_point[0], min_y_point[1]  # Return x and y coordinates
 
-    def move_item1(self, old_x, old_y, new_x, new_y):
+    def move_item_other(self, old_x, old_y, new_x, new_y):
         translation_x = new_x - old_x
         translation_y = new_y - old_y
 
@@ -288,6 +289,61 @@ class Item:
         self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
         self.x_coords = [x + translation_x for x in self.x_coords]
         self.y_coords = [y + translation_y for y in self.y_coords]
+        self.max_x = max(self.x_coords)
+        self.max_y = max(self.y_coords)
+        self.min_x = min(self.x_coords)
+        self.min_y = min(self.y_coords)
+
+
+    def move_item2(self, new_center_x, new_center_y):
+        # Calculate the current center point of the item
+        convex_polygon = Polygon(self.coordinates)
+
+        # Calculate the centroid of the convex polygon
+        centroid = convex_polygon.centroid
+
+        current_center_x = round(centroid.x)
+        current_center_y = round(centroid.y)
+        # Calculate the translation vector to move the center to the new position
+        translation_x = new_center_x - current_center_x
+        translation_y = new_center_y - current_center_y
+
+        # Update all coordinates by adding the translation vector
+        self.coordinates = [(x + translation_x, y + translation_y) for x, y in self.coordinates]
+        self.x_coords = [x + translation_x for x in self.x_coords]
+        self.y_coords = [y + translation_y for y in self.y_coords]
+        self.max_x = max(self.x_coords)
+        self.max_y = max(self.y_coords)
+        self.min_x = min(self.x_coords)
+        self.min_y = min(self.y_coords)
+
+    def move_itemnotusedrightnow(self, new_center_x, new_center_y, decimal_places=3):
+        # Calculate the current center point of the item
+        convex_polygon = Polygon(self.coordinates)
+
+        # Calculate the centroid of the convex polygon
+        centroid = convex_polygon.centroid
+        current_center_x = centroid.x
+        current_center_y = centroid.y
+
+        # Calculate the translation vector to move the center to the new position
+        translation_x = new_center_x - current_center_x
+        translation_y = new_center_y - current_center_y
+
+        # Create format string
+        format_str = f"{{:.{decimal_places}f}}"
+
+        # Update all coordinates by adding the translation vector and formatting
+        self.coordinates = [
+            (
+                float(format_str.format(x + translation_x)),
+                float(format_str.format(y + translation_y))
+            ) for x, y in self.coordinates
+        ]
+        self.x_coords = [float(format_str.format(x + translation_x)) for x in self.x_coords]
+        self.y_coords = [float(format_str.format(y + translation_y)) for y in self.y_coords]
+
+        # Update the bounding box
         self.max_x = max(self.x_coords)
         self.max_y = max(self.y_coords)
         self.min_x = min(self.x_coords)
@@ -754,6 +810,35 @@ class Item:
         self.x = point_of_region[0]
         self.y = point_of_region[1]
 
+    def move_from_to2notusedrightnow(self, point_of_pol, point_of_region, decimal_places=3):
+        # Calculate the translation vector
+        translation_x = point_of_region[0] - point_of_pol[0]
+        translation_y = point_of_region[1] - point_of_pol[1]
+
+        # Create format string
+        format_str = f"{{:.{decimal_places}f}}"
+
+        # Update all coordinates by adding the translation vector and formatting
+        self.coordinates = [
+            (
+                float(format_str.format(x + translation_x)),
+                float(format_str.format(y + translation_y))
+            ) for x, y in self.coordinates
+        ]
+
+        # Update x and y coordinates separately
+        self.x_coords = [float(format_str.format(x + translation_x)) for x in self.x_coords]
+        self.y_coords = [float(format_str.format(y + translation_y)) for y in self.y_coords]
+
+        # Update the bounding box
+        self.max_x = float(format_str.format(self.max_x + translation_x))
+        self.min_x = float(format_str.format(self.min_x + translation_x))
+        self.max_y = float(format_str.format(self.max_y + translation_y))
+        self.min_y = float(format_str.format(self.min_y + translation_y))
+
+        # Update the new position
+        self.x = float(format_str.format(point_of_region[0]))
+        self.y = float(format_str.format(point_of_region[1]))
     def move_from_to2_f_p_value(self, point_of_pol, point_of_region):
         # Calculate the translation vector
         translation_x = point_of_region[0] - point_of_pol[0]
@@ -929,3 +1014,53 @@ class Item:
         self.max_y = max(self.y_coords)
         self.min_x = min(self.x_coords)
         self.min_y = min(self.y_coords)
+
+    def extend_polygon(self, distance):
+        centroid = (Polygon(self.coordinates)).centroid
+        new_points = []
+        current_center_x = round(centroid.x)
+        current_center_y = round(centroid.y)
+        for point in self.coordinates:  # Exclude the closing point which is a repeat of the first
+            # Create a vector from the centroid to the current vertex
+            vector_x = point[0] - current_center_x
+            vector_y = point[1] - current_center_y
+            # Calculate the current distance from the centroid to the vertex
+            current_distance = math.sqrt(vector_x ** 2 + vector_y ** 2)
+            # Calculate the new distance
+            new_distance = current_distance + distance
+            # Scale the vector
+            new_x = current_center_x + (vector_x / current_distance * new_distance)
+            new_y = current_center_y + (vector_y / current_distance * new_distance)
+            # Append the new point
+            new_points.append((new_x, new_y))
+        return new_points
+
+    def extend_polygon_notusedrightnow(self, distance, decimal_places=3):
+        centroid = (Polygon(self.coordinates)).centroid
+        new_points = []
+        current_center_x = round(centroid.x)
+        current_center_y = round(centroid.y)
+
+        # Create format string
+        format_str = f"{{:.{decimal_places}f}}"
+
+        for point in self.coordinates:
+            # Create a vector from the centroid to the current vertex
+            vector_x = point[0] - current_center_x
+            vector_y = point[1] - current_center_y
+            # Calculate the current distance from the centroid to the vertex
+            current_distance = math.sqrt(vector_x ** 2 + vector_y ** 2)
+            # Calculate the new distance
+            new_distance = current_distance + distance
+            # Scale the vector
+            new_x = current_center_x + (vector_x / current_distance * new_distance)
+            new_y = current_center_y + (vector_y / current_distance * new_distance)
+            # Append the new point formatted to the desired decimal places
+            new_points.append(
+                (
+                    float(format_str.format(new_x)),
+                    float(format_str.format(new_y))
+                )
+            )
+        return new_points
+
