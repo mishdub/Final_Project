@@ -12,7 +12,7 @@ import numpy as np
 from decimal import Decimal, getcontext
 
 
-class Algo36:
+class Algo38:
 
     def __init__(self, container_instance, item_instances):
         self.container_instance = container_instance
@@ -608,10 +608,6 @@ class Algo36:
 
         if new_dist2 > new_dist4:
             new_dist2 = new_dist4
-
-
-
-
 
         p1 = self.calculate_endpoint_from_direction(px1, py1, vx, vy, new_dist)
         p2 = self.calculate_endpoint_from_direction(px2, py2, vx, vy, new_dist2)
@@ -2064,7 +2060,7 @@ class Algo36:
         start_time = time.time()
         previous_polygon = None
         for dex, polygon in enumerate(sorted_items):
-            if dex == 38:
+            if dex == 200:
                 break
             print(dex)
 
@@ -2289,6 +2285,8 @@ class Algo36:
                                                                      None, None)
                                                 draw_instance.plot()
                                                 another_list.pop()
+                                        elif Polygon(rec_temp).within(Polygon(convex_region_original)) and not Polygon(rec_temp).within(pol1):
+                                            break
                                         else:
                                             print("its not inside")
                                             before = copy.deepcopy(polygon)
@@ -2298,7 +2296,7 @@ class Algo36:
 
                                             points = self.check_if_line_cross(previous_polygon, polygon)
 
-                                            if dex >= 162:
+                                            if dex >= 16200:
                                                 another_list.append(polygon)
                                                 l_c = []
                                                 l_c.append(point)
@@ -2321,7 +2319,8 @@ class Algo36:
                                                     temp_b = b
                                                     a, b, c = self.check_ep_without_rec(angle, previous_polygon, point)
                                                     if b == temp_b and b is not None:
-                                                        a, b, c = self.check_ep3_without_rec(angle, previous_polygon, point, b)
+                                                        a, b, c = self.check_ep3_without_rec(angle, previous_polygon,
+                                                                                             point, b)
                                                     angle = self.calculate_angle_in_degrees(point, b)
                                                     if True:
                                                         dime = self.container_instance.calculate_total_dimensions()
@@ -2335,7 +2334,6 @@ class Algo36:
                                                                                                           dime)
                                                         l = LineString([point, (xxx, yyy)])
 
-
                                                     p = Polygon(previous_polygon.coordinates)
                                                     p = p.buffer(0.11)
                                                     if dex >= 100000:
@@ -2346,14 +2344,11 @@ class Algo36:
                                                         p_ll.append(point)
                                                         p_ll.append(b)
 
-
                                                         copied29 = copy.deepcopy(polygon)
-
 
                                                         another_list.append(polygon)
                                                         copied29.set_coordinates(list(p.exterior.coords))
                                                         another_list.append(copied29)
-
 
                                                         draw_instance = Draw(self.container_instance, another_list,
                                                                              (1, 1), (1, 1), (1, 1),
@@ -2364,7 +2359,6 @@ class Algo36:
                                                         draw_instance.plot()
                                                         another_list.pop()
                                                         another_list.pop()
-
 
                                                     if not l.crosses(p):
                                                         break
@@ -2378,31 +2372,19 @@ class Algo36:
                                                 print(flag)
                                                 if flag:
 
-                                                    if dex >= 161:
-                                                        another_list.append(polygon)
-                                                        temp_ex = copy.deepcopy(polygon)
-                                                        temp_ex.set_coordinates(extended_poly.exterior.coords)
-                                                        another_list.append(temp_ex)
-                                                        draw_instance = Draw(self.container_instance, another_list,
-                                                                             (1, 1), (1, 1), (1, 1),
-                                                                             (1, 1),
-                                                                             None,
-                                                                             None,
-                                                                             None, None)
-                                                        draw_instance.plot()
-                                                        another_list.pop()
-                                                        another_list.pop()
-
                                                     if dex >= 1640000:
                                                         an = (angle + 180) % 360
                                                         di = Point(middle_point).distance(Point(a))
-                                                        before.set_coordinates(polygon.move_item_by_dis_and_angle_value(di, angle))
+                                                        before.set_coordinates(
+                                                            polygon.move_item_by_dis_and_angle_value(di, angle))
                                                         flag, d1, d2, d3, d4, d5, d6, extended_poly_sec, right_li1, left_li1 = self.placement3(
                                                             an,
                                                             before.coordinates,
-                                                            convex_region, to_point_temp, polygon.coordinates,convex_region_original)
+                                                            convex_region, to_point_temp, polygon.coordinates,
+                                                            convex_region_original)
                                                         copied40 = copy.deepcopy(polygon)
-                                                        copied40.set_coordinates(list(extended_poly_sec.exterior.coords))
+                                                        copied40.set_coordinates(
+                                                            list(extended_poly_sec.exterior.coords))
 
                                                         another_list.append(copied40)
                                                         another_list.append(polygon)
@@ -2421,11 +2403,6 @@ class Algo36:
                                                         another_list.pop()
                                                         another_list.pop()
                                                         another_list.pop()
-
-
-
-
-
 
                                                         f_p_temp, t_p_temp, list_of_lines_temp, list_of_points_temp = self.place_poly(
                                                             polygon, extended_poly_sec,
@@ -2463,32 +2440,16 @@ class Algo36:
                                                     before.set_coordinates(
                                                         polygon.move_item_by_dis_and_angle_value(di, angle))
 
-
                                                     flag, d1, d2, d3, d4, d5, d6, extended_poly_sec, right_li1, left_li1 = self.placement3(
                                                         an,
                                                         before.coordinates,
-                                                        convex_region, to_point_temp, polygon.coordinates,convex_region_original)
+                                                        convex_region, to_point_temp, polygon.coordinates,
+                                                        convex_region_original)
 
                                                     f_p_temp, t_p_temp, list_of_lines_temp, list_of_points_temp = self.place_poly(
                                                         polygon, extended_poly_sec,
                                                         convex_region, angle, right_li1,
                                                         left_li1)
-                                                    if dex >= 162:
-                                                        another_list.append(polygon)
-                                                        temp_ex = copy.deepcopy(polygon)
-                                                        temp_ex.set_coordinates(extended_poly_sec.exterior.coords)
-                                                        another_list.append(temp_ex)
-                                                        draw_instance = Draw(self.container_instance, another_list,
-                                                                             (1, 1), (1, 1), (1, 1),
-                                                                             (1, 1),
-                                                                             None,
-                                                                             None,
-                                                                             None, None)
-                                                        draw_instance.plot()
-                                                        another_list.pop()
-                                                        another_list.pop()
-
-
 
                                                     if f_p_temp is None:
                                                         print("the standart")
@@ -2502,8 +2463,10 @@ class Algo36:
                                                         polygon.move_item_by_dis_and_angle(di2, new_an)
                                                         points = self.check_if_line_cross(previous_polygon, polygon)
                                                         print(" no new_option")
-                                                        if dex >= 162:
-                                                            another_list.append(polygon)
+                                                        if dex >= 1740000:
+                                                            cop = copy.deepcopy(polygon)
+                                                            cop.set_coordinates(list(extended_poly_sec.exterior.coords))
+                                                            another_list.append(cop)
 
                                                             draw_instance = Draw(self.container_instance, another_list,
                                                                                  (1, 1), (1, 1), (1, 1),
@@ -2516,21 +2479,35 @@ class Algo36:
 
                                                     else:
                                                         print("new_option")
-                                                        polygon.move_from_to2(f_p_temp, t_p_temp)
+                                                        di = Point(middle_point).distance(
+                                                            Polygon(polygon.coordinates))
+                                                        polygon.move_item_by_dis_and_angle(di, angle)
+
+                                                        new_an = (angle + 180) % 360
+                                                        di2 = (Polygon(polygon.coordinates)).distance(
+                                                            ((Polygon(convex_region)).exterior))
+                                                        polygon.move_item_by_dis_and_angle(di2, new_an)
                                                         points = self.check_if_line_cross(previous_polygon, polygon)
-                                                    """
-                                                    di = Point(middle_point).distance(Polygon(polygon.coordinates))
-                                                    polygon.move_item_by_dis_and_angle(di, angle)
+                                                        if dex >= 16400:
+                                                            another_list.append(polygon)
+                                                            l_c = []
+                                                            l_c.append(t_p_temp)
+                                                            cop = copy.deepcopy(polygon)
 
-                                                    new_an = (angle + 180) % 360
-                                                    di2 = (Polygon(polygon.coordinates)).distance((Polygon(previous_polygon.coordinates)))
-                                                    polygon.move_item_by_dis_and_angle(di2, new_an)
-                                                    points = self.check_if_line_cross(previous_polygon, polygon)
+                                                            cop.set_coordinates(list(extended_poly_sec.exterior.coords))
+                                                            another_list.append(cop)
 
-                                                    """
+                                                            draw_instance = Draw(self.container_instance, another_list,
+                                                                                 (1, 1), (1, 1), (1, 1),
+                                                                                 (1, 1),
+                                                                                 l_c,
+                                                                                 None,
+                                                                                 None, None)
+                                                            draw_instance.plot()
+                                                            another_list.pop()
+                                                            another_list.pop()
 
                                                     break
-
                                     break
 
                             if stop_flag:

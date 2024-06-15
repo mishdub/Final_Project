@@ -2611,7 +2611,7 @@ class Algo30:
                                     aru.append(copied2)
                                     aru.append(polygon)
                                     # aru.append(previous_polygon)
-                                    if dex >= 14:
+                                    if dex >= 140000:
                                         draw_instance = Draw(self.container_instance, another_list, (1, 1), (1, 1), (1, 1),
                                                              (1, 1),
                                                              poi,
@@ -2650,7 +2650,7 @@ class Algo30:
                             newlinestring = LineString([list(right_line000.coords)[1],list(left_line000.coords)[1]])
 
                             new_flag,line_of_newlinestring = self.check_first_line_string(polygon.coordinates, filled_polygon000, convex_region, angle,newlinestring)
-                            if dex >= 14:
+                            if dex >= 14000:
                                 listtt = []
                                 listtt.append([list(right_line000.coords)[1],list(left_line000.coords)[1]])
                                 line_of_newlinestring = line_of_newlinestring + listtt

@@ -2683,7 +2683,7 @@ class Algo29:
                                     aru.append(copied2)
                                     aru.append(polygon)
                                     # aru.append(previous_polygon)
-                                    if dex >=13:
+                                    if dex >=13000:
                                         draw_instance = Draw(self.container_instance, another_list, (1, 1), (1, 1), (1, 1),
                                                              (1, 1),
                                                              poi,
@@ -2758,7 +2758,7 @@ class Algo29:
                             polygon.the_point = the_point
 
 
-                            if dex >= 200:
+                            if dex >= 5000:
 
                                 ppp = []
                                 print(the_point)

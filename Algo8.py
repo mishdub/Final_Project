@@ -819,7 +819,7 @@ class Algo8:
         start_time = time.time()
         previous_polygon = None
         for dex, polygon in enumerate(sorted_items):
-            if dex == 10000:
+            if dex == 10:
                 break
             polygon.move_item(x, y)
             copied = copy.deepcopy(polygon)

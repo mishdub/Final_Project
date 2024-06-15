@@ -192,17 +192,17 @@ class Algo7:
                 the_list.append(polygon)
                 List.append(copied3)
                 draw_instance = Draw(self.container_instance, the_list, (x,y), (x2,y2), (1, 1), (1, 1), None, None,
-                                     None)
+                                     None,None)
                 draw_instance.plot()
                 li = []
                 li.append(copied)
                 draw_instance = Draw(self.container_instance,li, (1, 1), (1, 1), (1, 1), (1, 1), None, None,
-                                     None)
+                                     None,None)
                 draw_instance.plot()
                 li.pop()
 
         draw_instance = Draw(self.container_instance, List, (1, 1), (1, 1), (1, 1), (1, 1), None, None,
-                             None)
+                             None,None)
         draw_instance.plot()
 
 

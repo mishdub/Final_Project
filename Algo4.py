@@ -1383,7 +1383,7 @@ class Algo4:
         for dex, polygon in enumerate(sorted_items):
             print(dex)
             print(len(the_list))
-            if dex == 300:
+            if dex == 10:
                 break
             current_point = self.container_instance.calculate_centroid()
             x, y = current_point
@@ -1446,6 +1446,6 @@ class Algo4:
 
         end_time = time.time()
         elapsed_time = end_time - start_time
-        draw_instance = Draw(self.container_instance, the_list, (1, 1), (1, 1), (1, 1), (1, 1), None,None,None)
+        draw_instance = Draw(self.container_instance, the_list, (1, 1), (1, 1), (1, 1), (1, 1), None,None,None,None)
         draw_instance.plot()
         print("num of polygons", len(the_list),"out of",len(self.item_instances), "time", elapsed_time, "value", value)

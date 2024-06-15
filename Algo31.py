@@ -2531,7 +2531,7 @@ class Algo31:
 
 
         for dex, polygon in enumerate(sorted_items):
-            if dex == 700:
+            if dex == 594:
                 break
             print(dex)
 
@@ -2886,7 +2886,7 @@ class Algo31:
                                     aru.append(copied2)
                                     aru.append(polygon)
                                     # aru.append(previous_polygon)
-                                    if dex >= 404:
+                                    if dex >= 40400:
                                         draw_instance = Draw(self.container_instance, another_list, (1, 1), (1, 1), (1, 1),
                                                              (1, 1),
                                                              poi,
@@ -2981,7 +2981,7 @@ class Algo31:
                             polygon.the_point = the_point
 
 
-                            if dex >= 300:
+                            if dex >= 594:
 
                                 ppp = []
                                 print(the_point)
@@ -2989,7 +2989,7 @@ class Algo31:
 
                                 draw_instance = Draw(self.container_instance, another_list, (1, 1), (1, 1), (1, 1),
                                                      (1, 1),
-                                                     ppp,
+                                                     None,
                                                      None,
                                                      None, None)
                                 draw_instance.plot()

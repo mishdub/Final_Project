@@ -2300,7 +2300,7 @@ class Algo25:
         tri_index = 0
 
         for dex, polygon in enumerate(sorted_items):
-            if dex == 700:
+            if dex == 100:
                 break
             print(dex)
 
@@ -2341,10 +2341,7 @@ class Algo25:
                     polygon.left_intersection_point = new_l_p
 
 
-                    # polygon.sec_left_point = sec_point
-                    # left_list = self.check_ep2(angle, polygon)
-                    #polygon.left_list = left_list
-                    #polygon.curr_angle = angle
+
                     polygon.the_point = the_point
 
                     new_angle = self.calculate_angle_in_degrees(f_p, t_p)
@@ -2478,7 +2475,7 @@ class Algo25:
                                     aru.append(copied2)
                                     aru.append(polygon)
                                     # aru.append(previous_polygon)
-                                    if dex >= 14:
+                                    if dex >= 140000:
                                         draw_instance = Draw(self.container_instance, another_list, (1, 1), (1, 1), (1, 1),
                                                              (1, 1),
                                                              poi,
@@ -2516,7 +2513,7 @@ class Algo25:
                             newlinestring = LineString([list(right_line000.coords)[1],list(left_line000.coords)[1]])
 
                             new_flag,line_of_newlinestring = self.check_first_line_string(polygon.coordinates, filled_polygon000, convex_region, angle,newlinestring)
-                            if dex >= 14:
+                            if dex >= 140000:
                                 listtt = []
                                 listtt.append(list(left_line000.coords))
                                 listtt.append(list(right_line000.coords))
@@ -2589,7 +2586,7 @@ class Algo25:
                             polygon.the_point = the_point
 
 
-                            if dex >= 257:
+                            if dex >= 500:
 
                                 ppp = []
                                 ppp.append(new_l_p)

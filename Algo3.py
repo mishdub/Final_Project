@@ -863,11 +863,11 @@ class Algo3:
                                     temp.set_coordinates(mainitem)
                                     list_check[0] = temp
                                     draw_instance = Draw(self.container_instance, list_of_items, po1, po2,
-                                                         po3, po4, None)
+                                                         po3, po4, None,None,None,None)
                                     # draw_instance.plot()
 
                                     draw_instance = Draw(self.container_instance, list_check, po1, po2,
-                                                         po3, po4, None)
+                                                         po3, po4, None,None,None,None)
                                     # draw_instance.plot()
 
                                     # print("inside:", "angle", the_angle, "dist:", the_dist)
@@ -918,10 +918,10 @@ class Algo3:
                                     temp.set_coordinates(mainitem)
                                     list_check[0] = temp
                                     draw_instance = Draw(self.container_instance, list_of_items, po1, po2,
-                                                         po3, po4, None)
+                                                         po3, po4, None,None,None,None)
                                     #draw_instance.plot()
                                     draw_instance = Draw(self.container_instance, list_check, po1, po2, po3, po4,
-                                                         None)
+                                                         None,None,None,None)
                                     # print("inside:", "angle", the_angle, "dist:", the_dist)
                                     #draw_instance.plot()
                                     # list_check.pop()
@@ -933,15 +933,17 @@ class Algo3:
                     if flag:
                         break
                     z = z + 1
-            if i == 50:
+
+            if i == 300:
                 break
+            print(i)
             i = i + 1
 
 
 
 
 
-        draw_instance = Draw(self.container_instance, list_of_items, (1, 1), (1, 1), (1, 1), (1, 1), None)
+        draw_instance = Draw(self.container_instance, list_of_items, (1, 1), (1, 1), (1, 1), (1, 1), None,None,None,None)
         draw_instance.plot()
 
 
