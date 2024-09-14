@@ -707,6 +707,9 @@ class Algo_final:
                 is_rec,
                 is_back
             )
+            if break_from_all:
+                return 1, None, None, None, None, None, False
+
             if is_back:
                 angle = (angle - 0.01 % 360)
             else:
@@ -775,7 +778,8 @@ class Algo_final:
         less_detailed_convex_region = new_less_detailed_region
         return convex_region, less_detailed_convex_region, current_angle, is_blue_region_active, is_pink_region_active, half_detailed_convex_region
 
-    def create_json(self, container_coordinates, items, filename='output.json'):
+    def create_json(self, container_coordinates, items, filename='output.json',
+                    num_of_polygons=None, total_items=None, elapsed_time=None, value=None, temp=None, temp2=None):
         json_structure = {
             "container": {
                 "x": [point[0] for point in container_coordinates],
@@ -783,6 +787,17 @@ class Algo_final:
             },
             "items": []
         }
+
+        # Include metadata, even if some values are None
+        json_structure["metadata"] = {
+            "num_of_polygons": num_of_polygons,
+            "total_items": total_items,
+            "elapsed_time": elapsed_time,
+            "value": value,
+            "temp": temp,
+            "temp2": temp2
+        }
+
         for item in items:
             item_data = {
                 "quantity": 1,
@@ -1224,8 +1239,8 @@ class Algo_final:
         return [(x + translation_x, y + translation_y) for x, y in coordinates]
     def algo(self, filename):
         start_time = time.time()
-        sorted_items = sorted(self.item_instances, key=lambda item: item.calculate_total_dimensions(),
-                              reverse=False)
+        sorted_items = sorted(self.item_instances, key=lambda item: (item.value / item.calculate_total_dimensions()),
+                              reverse=True)
         diameter = self.container_instance.calculate_total_dimensions()
 
         split_flag = self.is_close_to_square(self.container_instance.coordinates)
@@ -1261,6 +1276,7 @@ class Algo_final:
 
         end_time = time.time()
         elapsed_time = end_time - start_time
+        self.create_json(self.container_instance.coordinates, list_of_polygons,"jigsaw/" + filename + "final", len(list_of_polygons), len(self.item_instances), elapsed_time, value)
 
         print("num of polygons", len(list_of_polygons), "out of", len(self.item_instances), "time", elapsed_time,
               "value", value)
@@ -1331,6 +1347,12 @@ class Algo_final:
                                     polygon,
                                     ext_size_for_loop,
                                     diameter, False, False)
+                            if not found and angle == 1:
+                                self.create_json(self.container_instance.coordinates, result_list,
+                                                 "jigsaw/" + filename + "error"+ dex, convex_region,
+                                                 convex_region_less_detailed, half_detailed_convex_region, blue_in, pink_in, previous_polygon.left_point)
+
+
                             if found:
                                 extended_polygon = extended_poly
                                 right_line = right_li
@@ -1353,6 +1375,11 @@ class Algo_final:
                                         angle, right_point, left_point, extended_poly, \
                                         right_li, left_li, found = self.find_LR_tangent(
                                             previous_polygon, polygon, ext_size_for_loop, diameter, False, True)
+                                        if not found and angle == 1:
+                                            self.create_json(self.container_instance.coordinates, result_list,
+                                                             "jigsaw/" + filename + "error" + dex, convex_region,
+                                                             convex_region_less_detailed, half_detailed_convex_region,
+                                                             blue_in, pink_in, previous_polygon.left_point)
                                         if found:
                                             self.move_back_and_check_intersection(polygon, previous_polygon,
                                                                                   middle_point, angle)
@@ -1404,9 +1431,8 @@ class Algo_final:
                         current_angle, blue_in, pink_in, half_detailed_convex_region, diameter)
 
                     previous_polygon = polygon
-
-
-
+                    middle_point = self.calculate_centroid(convex_region)
+                    print("placed")
 
 
         end_time = time.time()
@@ -1415,6 +1441,8 @@ class Algo_final:
         print("num of polygons", len(result_list), "out of", len(self.item_instances), "time", elapsed_time, "value",
               value)
         print("done")
+
+        self.create_json(self.container_instance.coordinates, result_list,"jigsaw/" + filename + "finalsemi", len(result_list), len(self.item_instances), elapsed_time, value)
 
         return result_list, value
 
