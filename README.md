@@ -5,8 +5,6 @@ This project focuses on the [Polygon Packing problem](https://cgshop.ibr.cs.tu-b
 ---
 
 ## Problem Description
----
-
 ## The input
 
 - **A container**: A convex polygon that serves as the bounding region where items must be placed.
