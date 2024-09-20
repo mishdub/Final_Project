@@ -20,3 +20,7 @@ The input to the problem consists of:
 - **Subset of Polygons**: The subset of polygons that achieve this maximum value, including their placement coordinates within the container.
 ---
 More information about the algorithms used is available in the following paper: [Project Book](https://drive.google.com/uc?export=download&id=1rgAn8u_n6t_144W3VBG8GQCIFDVnDkwX).
+
+## Animated Sticker
+
+![Looped Sticker](https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3VrajMzMnBydTh0MHJ5aXM5MG52cTk2ZWJyNGt1aDNhZDdjZ3JuMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/XF7PM5rCaerV6hYsGN/giphy.gif)
