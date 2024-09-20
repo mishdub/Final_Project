@@ -21,4 +21,4 @@ The input to the problem consists of:
 ---
 More information about the algorithms used is available in the following paper: [Project Book](https://drive.google.com/uc?export=download&id=1rgAn8u_n6t_144W3VBG8GQCIFDVnDkwX).
 
-![Looped Sticker](https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExa3FwYWQ2b3JzYzNwZmpzaXRxOXJicmozdms5bW1rd2p2MWtkYzlkcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/g83nUlLjNZAMwekC1m/giphy.gif)
+![Looped Sticker](https://drive.google.com/uc?export=download&id=1hIy4e2GCPKnkbMyykuQIpAvOdQGN0FrX)
