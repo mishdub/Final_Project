@@ -9,8 +9,10 @@ The input to the problem consists of:
 - **A container**: A convex polygon that serves as the bounding region where items must be placed.
 - **A set of items**: Each item is also a polygon with a fixed shape, orientation, and an associated integer value.
   
-![Description of Photo](https://drive.google.com/uc?export=download&id=14ZeNfKfievqEdrsuaC4eCngFRgcENGsW)
-
+<div style="display: flex; justify-content: space-around;">
+    <img src="https://drive.google.com/uc?export=download&id=1mG4rHhBmrBfExq5-ysKq_oIXSYOjgXXi" alt="Photo 1" width="300" />
+    <img src="https://drive.google.com/uc?export=download&id=14ZeNfKfievqEdrsuaC4eCngFRgcENGsW" alt="Photo 2" width="300" />
+</div>
 
   
 ## Constraints
