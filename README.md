@@ -9,7 +9,7 @@ The input to the problem consists of:
 - **A container**: A convex polygon that serves as the bounding region where items must be placed.
 - **A set of items**: Each item is also a polygon with a fixed shape, orientation, and an associated integer value.
   
-![Description of Photo](https://drive.google.com/file/d/14ZeNfKfievqEdrsuaC4eCngFRgcENGsW/view?usp=sharing)
+![Description of Photo](https://drive.google.com/uc?export=download&id=14ZeNfKfievqEdrsuaC4eCngFRgcENGsW)
 
 
   
