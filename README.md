@@ -4,7 +4,7 @@ This project focuses on the [Polygon Packing problem](https://cgshop.ibr.cs.tu-b
 
 ## Problem Description
 
-The input to the problem consists of:
+## The input
 
 - **A container**: A convex polygon that serves as the bounding region where items must be placed.
 - **A set of items**: Each item is also a polygon with a fixed shape, orientation, and an associated integer value.
@@ -15,15 +15,18 @@ The input to the problem consists of:
 </div>
 
   
-## Constraints
+## The Constraints
 
 - **No Overlap**: The polygons must be arranged without overlapping or intersecting.
 - **No Rotation, Tilting, or Dilation**: The items must maintain their original orientation, shape, and scale during placement.
 
-## Output
+## The Output
 
 - **Maximum Total Value**: The maximum total value that can be obtained from the subset of polygons packed into the container.
 - **Subset of Polygons**: The subset of polygons that achieve this maximum value, including their placement coordinates within the container.
+
+![Additional Photo](https://drive.google.com/uc?export=download&id=1Md2Ugz5EXh01djkKjqbgDq0VdyMRr7PM)
+
 
 
 ---
