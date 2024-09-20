@@ -23,4 +23,4 @@ More information about the algorithms used is available in the following paper: 
 
 ## Animated Sticker
 
-![Looped Sticker](https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExN3VrajMzMnBydTh0MHJ5aXM5MG52cTk2ZWJyNGt1aDNhZDdjZ3JuMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/XF7PM5rCaerV6hYsGN/giphy.gif)
+![Looped Sticker](https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExa3FwYWQ2b3JzYzNwZmpzaXRxOXJicmozdms5bW1rd2p2MWtkYzlkcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/g83nUlLjNZAMwekC1m/giphy.gif)
