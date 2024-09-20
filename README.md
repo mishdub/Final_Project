@@ -18,7 +18,5 @@ The input to the problem consists of:
 
 - **Maximum Total Value**: The maximum total value that can be obtained from the subset of polygons packed into the container.
 - **Subset of Polygons**: The subset of polygons that achieve this maximum value, including their placement coordinates within the container.
-
-## Additional Information
-
+---
 More information about the algorithms used is available in the following paper: [Project Book](https://drive.google.com/uc?export=download&id=1rgAn8u_n6t_144W3VBG8GQCIFDVnDkwX).
