@@ -21,4 +21,4 @@ The input to the problem consists of:
 
 ## Additional Information
 
-More information about the algorithms used is available in the following paper: [Project Book](<your-direct-pdf-link>).
+More information about the algorithms used is available in the following paper: [Project Book](https://drive.google.com/uc?export=download&id=1flA3o1bpZuq4fjxkB_GroAWg1NfE4EnP).
