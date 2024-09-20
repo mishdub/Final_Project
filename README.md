@@ -13,3 +13,9 @@ The input to the problem consists of:
 
 - **No Overlap**: The polygons must be arranged without overlapping or intersecting.
 - **No Rotation, Tilting, or Dilation**: The items must maintain their original orientation, shape, and scale during placement.
+
+## Output
+
+- **Maximum Total Value**: The maximum total value that can be obtained from the subset of polygons packed into the container.
+- **Subset of Polygons**: The subset of polygons that achieve this maximum value, including their placement coordinates within the container.
+
