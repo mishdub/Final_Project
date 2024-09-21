@@ -53,9 +53,15 @@ Our final solution employs three primary methods for the Packing algorithm: **Do
 
 These methods together ensure an efficient packing strategy, minimizing wasted space while balancing region dimensions.
 
-
----
 More information about the algorithms used is available in the following paper: [Project Book](https://drive.google.com/uc?export=download&id=1rgAn8u_n6t_144W3VBG8GQCIFDVnDkwX).
+
+### Technical Implementation
+
+Our solution is implemented in Python utilizing the following libraries and tools:
+
+- **Geometric Libraries**: We used the **Shapely** library for handling polygonal data, intersection checks.
+
+- **Visualization**: We used the **Matplotlib** library for visual output, showcasing the final arrangement of polygons within the container for better analysis.
 
 ---
   
