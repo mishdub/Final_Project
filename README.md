@@ -6,7 +6,7 @@
 
 
 This project focuses on the [Polygon Packing problem](https://cgshop.ibr.cs.tu-bs.de/competition/cg-shop-2024/#problem-description) from the CG 2024 competition. 
-By exploring different methods, we aim to provide useful insights and contribute to better solutions for this optimization challenge.
+By exploring different methods, we aim to provide useful insights and contribute to potential solutions for this optimization challenge.
 
 <div align="center">
     <img src="https://drive.google.com/uc?export=download&id=1hIy4e2GCPKnkbMyykuQIpAvOdQGN0FrX" alt="Looped Sticker" style="max-width: 100%; height: auto;" />
