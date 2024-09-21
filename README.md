@@ -39,6 +39,21 @@ By exploring different methods, we aim to provide useful insights and contribute
     <img src="https://drive.google.com/uc?export=download&id=1Md2Ugz5EXh01djkKjqbgDq0VdyMRr7PM">
 </div>
 
+### Algorithms
+
+Our final solution employs three primary methods for the Packing algorithm: **Double Tangent**, **Item Placement**, and **Splitting**.
+
+1. **Main Algorithm**: The convex region is split into subregions if its width and height are imbalanced. Items are then placed in a counterclockwise direction, ensuring efficient packing by minimizing gaps between items. The algorithm prioritizes high utility items, which have small areas and high value.
+
+2. **Double Tangent**: This method calculates tangents between items to determine optimal placement angles and positions, ensuring that the new item does not intersect the previous one.
+
+3. **Item Placement**: The item is moved towards the boundary of the convex region based on the smallest distance between its points and the region's boundary.
+
+4. **Splitting**: If the region is imbalanced in terms of width and height, it is recursively split into smaller regions with more equal dimensions.
+
+These methods together ensure an efficient packing strategy, minimizing wasted space while balancing region dimensions.
+
+
 ---
 More information about the algorithms used is available in the following paper: [Project Book](https://drive.google.com/uc?export=download&id=1rgAn8u_n6t_144W3VBG8GQCIFDVnDkwX).
 
