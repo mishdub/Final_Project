@@ -30,5 +30,6 @@ By exploring different methods, we aim to provide useful insights and contribute
 <div align="center">
     <img src="https://drive.google.com/uc?export=download&id=1Md2Ugz5EXh01djkKjqbgDq0VdyMRr7PM">
 </div>
+
 ---
 More information about the algorithms used is available in the following paper: [Project Book](https://drive.google.com/uc?export=download&id=1rgAn8u_n6t_144W3VBG8GQCIFDVnDkwX).
