@@ -5,6 +5,7 @@ By exploring different methods, we aim to provide useful insights and contribute
 <p align="center">
   <img src="[demo.gif](https://drive.google.com/uc?export=download&id=1hIy4e2GCPKnkbMyykuQIpAvOdQGN0FrX)" alt="animated" />
 </p>
+
 ---
 
 ## Problem Description
