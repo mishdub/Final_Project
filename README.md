@@ -39,7 +39,7 @@ By exploring different methods, we aim to provide useful insights and contribute
     <img src="https://drive.google.com/uc?export=download&id=1Md2Ugz5EXh01djkKjqbgDq0VdyMRr7PM">
 </div>
 
-### Algorithms
+## Algorithms
 
 Our final solution employs three primary methods for the Packing algorithm: **Double Tangent**, **Item Placement**, and **Splitting**.
 
@@ -53,7 +53,7 @@ Our final solution employs three primary methods for the Packing algorithm: **Do
 
 More information about the algorithms used is available in the following paper: [Project Book](https://drive.google.com/uc?export=download&id=1rgAn8u_n6t_144W3VBG8GQCIFDVnDkwX).
 
-### Technical Implementation
+## Technical Implementation
 
 Our solution is implemented in Python utilizing the following libraries and tools:
 
