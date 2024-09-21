@@ -4,11 +4,11 @@
 
 **Prepared by:**
 
-- Mishell Dubovitski  
-- Alina Zakhozha  
+Mishell Dubovitski  
+Alina Zakhozha  
 
 **Supervised by:**  
-- Dr. Gabriel Nivasch
+Dr. Gabriel Nivasch
 
 </div>
 
