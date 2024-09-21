@@ -2,14 +2,6 @@
 
 # Polygon Packing Problem
 
-**Prepared by:**
-
-Mishell Dubovitski  
-Alina Zakhozha  
-
-**Supervised by:**  
-Dr. Gabriel Nivasch
-
 </div>
 
 
@@ -49,3 +41,14 @@ By exploring different methods, we aim to provide useful insights and contribute
 
 ---
 More information about the algorithms used is available in the following paper: [Project Book](https://drive.google.com/uc?export=download&id=1rgAn8u_n6t_144W3VBG8GQCIFDVnDkwX).
+
+<div align="center">
+**Prepared by:**
+
+Mishell Dubovitski  
+Alina Zakhozha  
+
+**Supervised by:**  
+Dr. Gabriel Nivasch
+
+</div>
