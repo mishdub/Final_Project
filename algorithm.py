@@ -1,19 +1,12 @@
-from Draw import Draw
 import math
-from shapely.geometry import MultiPolygon
+from shapely.geometry import MultiPolygon, Polygon, GeometryCollection, Point, LineString
+from shapely.ops import unary_union, split
 from math import sqrt
-from shapely.geometry import Polygon, GeometryCollection
-
-from shapely.ops import unary_union
 import time
 import copy
-import json
-from shapely.geometry import Point,  LineString
 
 
-from shapely.ops import split
-
-class Algo_final:
+class algorithm:
 
     def __init__(self, container_instance, item_instances):
         self.container_instance = container_instance
@@ -316,16 +309,28 @@ class Algo_final:
         angle_degrees = math.degrees(angle_radians)
         return angle_degrees
 
-    def check_if_line_cross(self, convex_polygon, polygon):
+    def check_if_line_crosses_the_polygon(self, convex_polygon, polygon):
+        # Initialize an empty list to store points that pass the line-crossing check
         new_list = []
+
+        # Create a Shapely Polygon object from the given polygon points
         pol = Polygon(polygon)
+
+        # Calculate the centroid of the convex polygon
         center_con = self.calculate_centroid(convex_polygon)
 
+        # Iterate through each point in the given polygon
         for point in polygon:
+            # Create a line from the centroid of the convex polygon to the current point
             line = LineString([center_con, point])
+
+            # Check if the line does not cross the polygon
             if not line.crosses(pol):
+                # If the point is not already in the new list, add it
                 if point not in new_list:
                     new_list.append(point)
+
+        # Return the list of points whose lines do not cross the polygon
         return new_list
 
     def calculate_centroid(self, coordinates):
@@ -354,17 +359,25 @@ class Algo_final:
         return rect_coordinates
 
     def find_most_left_or_right_point(self, angle, polygon_coordinates, new_center, size_extend, for_rec, dime):
+        # Extend the polygon by a specified size
         extended_polygon = self.extend_polygon(polygon_coordinates, size_extend)
+
+        # If the polygon needs to be treated as a rectangle, convert it into a rectangle
         if for_rec:
             extended_polygon = self.polygon_to_rectangle(extended_polygon)
 
+        # If a new center is not provided, calculate the centroid of the extended polygon
         if new_center is None:
             center = self.calculate_centroid(extended_polygon)
         else:
+            # Use the provided new center
             center = new_center
 
-        left_point, right_point, left_endpoint, right_endpoint = self.find_left_and_right_points(center, angle, extended_polygon, dime)
+        # Find the left and right points along with their endpoints based on the given center, angle, and dimension (dime)
+        left_point, right_point, left_endpoint, right_endpoint = self.find_left_and_right_points(center, angle,
+                                                                                                 extended_polygon, dime)
 
+        # Return the most left and right points of the polygon
         return left_point, right_point
 
     def intersection_of_lines(self, vertical_line_coordinates, horizontal_line_coordinates, angle, start_point,
@@ -509,63 +522,89 @@ class Algo_final:
             return list(mergedPolys.exterior.coords)
 
     def extend_polygon_with_angle(self, angle, convex_region, polygon, extension_size, dime):
-        original_extended_polygon, extended_polygon, ordered_coordinates = self.create_extended_polygon(angle, convex_region, polygon, extension_size, dime)
+        # Create the original extended polygon, the new extended polygon, and ordered coordinates based on the given angle
+        original_extended_polygon, extended_polygon, ordered_coordinates = self.create_extended_polygon(angle,
+                                                                                                        convex_region,
+                                                                                                        polygon,
+                                                                                                        extension_size,
+                                                                                                        dime)
 
+        # Initialize a list to hold the exterior coordinates of the merged polygons
         exterior_coordinates_list = []
 
         try:
+            # Merge the original and new extended polygons
             merged_polygons = unary_union([original_extended_polygon, extended_polygon])
 
+            # Check if the merged result is a MultiPolygon
             if isinstance(merged_polygons, MultiPolygon):
+                # Iterate through each individual polygon in the MultiPolygon
                 for individual_polygon in merged_polygons.geoms:
+                    # Get the exterior coordinates and add them to the list
                     exterior_coordinates = list(individual_polygon.exterior.coords)
                     exterior_coordinates_list.extend(exterior_coordinates)
             else:
+                # If not a MultiPolygon, directly get the exterior coordinates
                 exterior_coordinates_list = list(merged_polygons.exterior.coords)
 
+            # Validate the merged polygon; if invalid, convert it to a rectangle
             if not Polygon(exterior_coordinates_list).is_valid:
                 print("Polygon is not valid; converting to rectangle.")
                 exterior_coordinates_list = self.polygon_to_rectangle(exterior_coordinates_list)
         except Exception as e:
+            # In case of an error, combine the original polygon and ordered coordinates
             combined_coordinates = polygon + ordered_coordinates
+            # Order the combined coordinates counterclockwise
             combined_coordinates = self.order_coordinates_counterclockwise(combined_coordinates)
+            # Convert the combined coordinates to a rectangle
             exterior_coordinates_list = self.polygon_to_rectangle(combined_coordinates)
             print(f"An error occurred: {str(e)}")
 
+        # Return the list of exterior coordinates of the extended polygon
         return exterior_coordinates_list
 
     def create_extended_polygon(self, angle, convex_region, polygon, extension_size, tolerance):
+        # Calculate the centroid of the given polygon
         centroid = self.calculate_centroid(polygon)
 
+        # Find the left and right points from the centroid based on the specified angle and tolerance
         (left_x, left_y), (right_x, right_y), left_endpoint, right_endpoint = self.find_left_and_right_points(
             centroid, angle, polygon, tolerance)
 
+        # Find the closest intersection point on the convex region for the right side
         right_intersection = self.find_closest_intersection_point(
             convex_region, [(right_x, right_y), right_endpoint], (right_x, right_y), True)
 
+        # Use the intersection point or the original right point if no intersection is found
         right_intersection_x, right_intersection_y = (
             right_intersection if right_intersection is not None else (right_x, right_y)
         )
 
+        # Find the closest intersection point on the convex region for the left side
         left_intersection = self.find_closest_intersection_point(
             convex_region, [(left_x, left_y), left_endpoint], (left_x, left_y), True)
 
+        # Use the intersection point or the original left point if no intersection is found
         left_intersection_x, left_intersection_y = (
             left_intersection if left_intersection is not None else (left_x, left_y)
         )
 
+        # Calculate the direction vector based on the given angle
         direction_vector_x, direction_vector_y = (
             math.cos(math.radians(angle)), math.sin(math.radians(angle))
         )
 
+        # Calculate the endpoint for the right intersection point based on the direction vector
         (right_intersection_x, right_intersection_y) = self.calculate_endpoint_from_direction(
             right_intersection_x, right_intersection_y, direction_vector_x, direction_vector_y, 2
         )
 
+        # Calculate the endpoint for the left intersection point based on the direction vector
         (left_intersection_x, left_intersection_y) = self.calculate_endpoint_from_direction(
             left_intersection_x, left_intersection_y, direction_vector_x, direction_vector_y, 2
         )
 
+        # Create a list of polygon coordinates using the right and left intersection points and original points
         polygon_coordinates = [
             (right_x, right_y),
             (right_intersection_x, right_intersection_y),
@@ -573,11 +612,14 @@ class Algo_final:
             (left_x, left_y)
         ]
 
+        # Order the coordinates counterclockwise for proper polygon representation
         ordered_coordinates = self.order_coordinates_counterclockwise(polygon_coordinates)
 
+        # Create extended polygons based on the ordered coordinates and the original polygon
         extended_polygon = Polygon(self.extend_polygon(ordered_coordinates, extension_size))
         original_extended_polygon = Polygon(self.extend_polygon(polygon, extension_size))
 
+        # Return the original extended polygon, the newly extended polygon, and the ordered coordinates
         return original_extended_polygon, extended_polygon, ordered_coordinates
 
     def extend_polygon(self, coordinates, buffer_distance):
@@ -589,30 +631,41 @@ class Algo_final:
         return list(buffered_polygon.exterior.coords)
 
     def placement(self, angle, middle_polygon, convex_polygon, dime):
+        # Calculate the centroid of the middle polygon
         center = self.calculate_centroid(middle_polygon)
 
+        # Find the left and right points, as well as their endpoints based on the center and given angle
         left_point, right_point, end_left_point, end_right_point = self.find_left_and_right_points(center, angle,
                                                                                                    middle_polygon, dime)
 
+        # Create lines representing the left and right extensions
         right_line = LineString([right_point, end_right_point])
         left_line = LineString([left_point, end_left_point])
 
+        # Create a filled polygon by combining the left and right lines
         filled_polygon = Polygon(list(left_line.coords) + list(right_line.coords)[::-1])
 
+        # Generate the convex hull for the middle polygon
         convex_hull_for_pol = Polygon(middle_polygon).convex_hull
 
+        # Unite the convex hull with the filled polygon to create a combined shape
         unite_pols = convex_hull_for_pol.union(filled_polygon)
 
+        # Update filled_polygon with the united shape
         filled_polygon = unite_pols
 
+        # Initialize a flag to check intersection with the convex polygon
         flag = False
         if convex_polygon is not None:
+            # Get the extended size of the convex polygon
             big_p = convex_polygon.ext_size
             big_p = Polygon(big_p)
 
+            # Check if the filled polygon does not intersect with the convex polygon
             if not (filled_polygon.intersects(big_p)):
                 flag = True
 
+        # Return the flag indicating intersection status, the filled polygon, and the left and right lines
         return flag, filled_polygon, right_line, left_line
 
     def shrink_polygon(self, distance, coordinates):
@@ -637,92 +690,128 @@ class Algo_final:
             new_points.append((new_x, new_y))
         return new_points
 
-    def process_interaction(self, angle, previous_polygon, point, check_ep_func1, rec_const, dime, is_rec=False,
-                            is_back=False):
+    def find_potential_tangent_point(self, angle, previous_polygon, point, most_left_right_point_func, ext_const,
+                                     diameter, is_rectangle=False, is_backward=False):
+        # Record the start time for timeout handling
         start_time = time.time()
-        time_limit = 5
+        time_limit = 5  # Set a time limit of 5 seconds for the operation
+
+        # Calculate the centroid of the previous polygon to use as a starting point
         center = self.calculate_centroid(previous_polygon.coordinates)
-        ref_point = center
+        potential_point = center  # Initialize the potential point to the center
 
+        # Continuously attempt to find the tangent point
         while True:
-            if is_back:
-                a, ref_point = check_ep_func1(angle, previous_polygon.coordinates, ref_point, rec_const, False, dime)
+            # Depending on whether we are moving backward or forward, call the left/right point function
+            if is_backward:
+                temp_point_v1, potential_point = most_left_right_point_func(angle, previous_polygon.coordinates,
+                                                                            potential_point, ext_const, False, diameter)
             else:
-                ref_point, b = check_ep_func1(angle, previous_polygon.coordinates, ref_point, rec_const, is_rec, dime)
+                potential_point, temp_point_v2 = most_left_right_point_func(angle, previous_polygon.coordinates,
+                                                                            potential_point, ext_const, is_rectangle,
+                                                                            diameter)
 
-            angle = self.calculate_angle_in_degrees(point, ref_point)
+            # Recalculate the angle between the reference point and the current potential point
+            angle = self.calculate_angle_in_degrees(point, potential_point)
 
-            if True:  # Retained for clarity; you can remove this condition
-                xx, yy = point
-                if is_back:
-                    this_angle = (angle - 0.01 % 360)
-                else:
-                    this_angle = (angle + 0.01 % 360)
+            # Unpack the reference point coordinates
+            point_x, point_y = point
 
-                vx, vy = (
-                    math.cos(math.radians(this_angle)),
-                    math.sin(math.radians(this_angle))
-                )
-                xxx, yyy = self.calculate_endpoint_from_direction(xx, yy, vx, vy, dime)
-                l = LineString([point, (xxx, yyy)])
-                l2 = LineString([point, ref_point])
-
-            if is_rec:
-                big_p = previous_polygon.ext_size_for_loop_rec
-                big_p = self.polygon_to_rectangle(big_p)
+            # Adjust the angle slightly based on whether the function is running in reverse or forward mode
+            if is_backward:
+                adjusted_angle = (angle - 0.01 % 360)
             else:
-                big_p = previous_polygon.ext_size_for_loop
+                adjusted_angle = (angle + 0.01 % 360)
 
-            big_p = Polygon(big_p)
+            # Calculate the direction vector using the adjusted angle
+            vector_x, vector_y = (
+                math.cos(math.radians(adjusted_angle)),
+                math.sin(math.radians(adjusted_angle))
+            )
 
+            # Find the endpoint by extending the direction vector from the point
+            endpoint_x, endpoint_y = self.calculate_endpoint_from_direction(point_x, point_y, vector_x, vector_y,
+                                                                            diameter)
+
+            # Create lines from the reference point: one to the endpoint and another to the potential point
+            line_to_endpoint = LineString([point, (endpoint_x, endpoint_y)])
+            line_to_potential_point = LineString([point, potential_point])
+
+            # Check if the polygon should be treated as a rectangle or not and create the bounding polygon accordingly
+            if is_rectangle:
+                bounding_polygon = previous_polygon.ext_size_for_loop_rec
+                bounding_polygon = self.polygon_to_rectangle(bounding_polygon)
+            else:
+                bounding_polygon = previous_polygon.ext_size_for_loop
+
+            bounding_polygon = Polygon(bounding_polygon)  # Ensure the bounding polygon is a valid Polygon object
+
+            # Check if the time spent exceeds the defined time limit (5 seconds)
             current_time = time.time()
             elapsed_time = current_time - start_time
-
             if elapsed_time > time_limit:
-                return (None, None, True)
+                return (None, None, True)  # Return None if the operation times out
 
-            if not l.crosses(big_p):
-                if l2.touches(big_p):
-                    if is_back:
-                        return angle, ref_point, False
+            # Check if the line extending from the point crosses the polygon's boundary
+            if not line_to_endpoint.crosses(bounding_polygon):
+                # If the line to the potential point touches the bounding polygon, return the angle and point
+                if line_to_potential_point.touches(bounding_polygon):
+                    if is_backward:
+                        return angle, potential_point, False
                     else:
-                        return angle, ref_point, False
+                        return angle, potential_point, False
 
-    def find_LR_tangent(self, previous_polygon, polygon, ext_size_for_loop, dime, is_rec, is_back):
-        if is_rec:
+    def find_tangent_points(self, previous_polygon, polygon, ext_size_for_loop, diameter, is_rectangle, is_backward):
+        # Check if the previous polygon should be treated as a rectangle or not
+        if is_rectangle:
+            # Convert the previous polygon's coordinates into a rectangle
             rec_cor = self.polygon_to_rectangle(previous_polygon.coordinates)
-            points = self.check_if_line_cross(rec_cor, polygon.coordinates)
+            # Find points where the line crosses the polygon's boundary using the rectangle coordinates
+            points = self.check_if_line_crosses_the_polygon(rec_cor, polygon.coordinates)
         else:
-            points = self.check_if_line_cross(previous_polygon.coordinates, polygon.coordinates)
-        for point in points:
-            angle = self.calculate_angle_in_degrees(point, previous_polygon.left_point)
+            # Find points where the line crosses the polygon's boundary using the original polygon coordinates
+            points = self.check_if_line_crosses_the_polygon(previous_polygon.coordinates, polygon.coordinates)
 
-            angle, a, break_from_all = self.process_interaction(
+        # Iterate through all points where the line crosses the polygon
+        for tangent_point_from in points:
+            # Calculate the angle between the tangent point and the leftmost point of the previous polygon
+            angle = self.calculate_angle_in_degrees(tangent_point_from, previous_polygon.left_point)
+
+            # Call the find_potential_tangent_point function to get the adjusted angle and the next tangent point
+            angle, tangent_point_to, break_from_all = self.find_potential_tangent_point(
                 angle,
                 previous_polygon,
-                point,
-                self.find_most_left_or_right_point,
+                tangent_point_from,
+                self.find_most_left_or_right_point,  # Function to find the most left/right point
                 ext_size_for_loop,
-                dime,
-                is_rec,
-                is_back
+                diameter,
+                is_rectangle,
+                is_backward
             )
-            if break_from_all:
-                return 1, None, None, None, None, None, False
 
-            if is_back:
+            # If the find_potential_tangent_point function signals a timeout or failure, return early
+            if break_from_all:
+                return 1, None, None, None, None, None, False  # Signal failure with a flag
+
+            # Adjust the angle slightly depending on whether we are moving backward or forward
+            if is_backward:
                 angle = (angle - 0.01 % 360)
             else:
                 angle = (angle + 0.01 % 360)
 
+            # Try to place the polygon based on the calculated angle and other parameters
             flag, extended_poly, right_li, left_li = self.placement(
                 angle,
                 polygon.coordinates,
-                previous_polygon, dime)
+                previous_polygon,
+                diameter
+            )
 
+            # If the placement was successful (flag is True), return all relevant information
             if flag:
-                return angle, point, a, extended_poly, right_li, left_li, True
+                return angle, tangent_point_from, tangent_point_to, extended_poly, right_li, left_li, True
 
+        # If no valid tangent points were found or placement failed, return failure signal
         return None, None, None, None, None, None, False
 
     def update_convex_region(self, angle, convex_region, less_detailed_convex_region, polygon, extension_size, midpoint,
@@ -777,38 +866,6 @@ class Algo_final:
 
         less_detailed_convex_region = new_less_detailed_region
         return convex_region, less_detailed_convex_region, current_angle, is_blue_region_active, is_pink_region_active, half_detailed_convex_region
-
-    def create_json(self, container_coordinates, items, filename='output.json',
-                    num_of_polygons=None, total_items=None, elapsed_time=None, value=None, temp=None, temp2=None):
-        json_structure = {
-            "container": {
-                "x": [point[0] for point in container_coordinates],
-                "y": [point[1] for point in container_coordinates],
-            },
-            "items": []
-        }
-
-        # Include metadata, even if some values are None
-        json_structure["metadata"] = {
-            "num_of_polygons": num_of_polygons,
-            "total_items": total_items,
-            "elapsed_time": elapsed_time,
-            "value": value,
-            "temp": temp,
-            "temp2": temp2
-        }
-
-        for item in items:
-            item_data = {
-                "quantity": 1,
-                "value": item.value,
-                "x": [coord[0] for coord in item.coordinates],
-                "y": [coord[1] for coord in item.coordinates],
-            }
-            json_structure["items"].append(item_data)
-
-        with open(filename, 'w') as file:
-            json.dump(json_structure, file, indent=4)
 
     def polygon_dimensions(self, vertices):
         # Create a Polygon object
@@ -871,15 +928,6 @@ class Algo_final:
         return relative_difference <= tolerance_difference
 
     def find_polygon_diameter_angle(self, vertices):
-        """
-        Calculate the diameter of a convex polygon and return the start and end points of the diameter.
-
-        Parameters:
-        vertices (list of tuples): A list of (x, y) coordinates representing the vertices of the convex polygon.
-
-        Returns:
-        tuple: A tuple containing two points (each as a tuple) that form the diameter of the polygon (start point and end point).
-        """
         # Create a Polygon object
         polygon = Polygon(vertices)
 
@@ -1035,62 +1083,95 @@ class Algo_final:
         return optimal_angle
 
     def recursive_split(self, polygon_coordinates, max_depth, diameter, current_depth=0, use_other=False):
+        # Check if the polygon is already close to a square or if the recursion has reached the maximum depth
         split_flag = self.is_close_to_square(polygon_coordinates)
 
+        # If the polygon is square-like or maximum recursion depth is reached, return the current polygon
         if split_flag or current_depth >= max_depth:
             return [polygon_coordinates]
         else:
-            # Determine the angle calculation method
+            # Determine the method for calculating the best angle for splitting
             if use_other:
-                angle_d = self.polygon_best_angle_for_none_rec(polygon_coordinates, diameter)
+                # Use non-recursive method to calculate the best angle for splitting
+                angle_for_split = self.polygon_best_angle_for_none_rec(polygon_coordinates, diameter)
             else:
-                angle_d = self.polygon_best_angle_for_rec(polygon_coordinates)
+                # Use recursive method to calculate the best angle for splitting
+                angle_for_split = self.polygon_best_angle_for_rec(polygon_coordinates)
 
+            # Calculate the centroid of the polygon to find the splitting point
             middle_point = self.calculate_centroid(polygon_coordinates)
 
-            per_line = self.find_perpendicular_line(angle_d, middle_point, diameter)
+            # Find a perpendicular line based on the calculated angle and the centroid for the split
+            per_line = self.find_perpendicular_line(angle_for_split, middle_point, diameter)
 
+            # Split the polygon along the calculated perpendicular line
             split_polygons = split(Polygon(polygon_coordinates), LineString(per_line))
             list_of_convex_regions = []
 
-            # Check if the result is a GeometryCollection
+            # Check if the split operation returned a GeometryCollection (multiple geometries)
             if split_polygons.geom_type == 'GeometryCollection':
                 for geom in split_polygons.geoms:
                     if isinstance(geom, Polygon):
-                        # Recursively split each resulting polygon
+                        # Recursively apply the split operation to each resulting polygon
                         list_of_convex_regions.extend(
                             self.recursive_split(list(geom.exterior.coords), max_depth, diameter, current_depth + 1,
                                                  use_other))
 
+            # Return the list of split polygons (convex regions)
             return list_of_convex_regions
 
     def find_left_and_right_points(self, center, angle, middle_polygon, dime):
+        # Extract x and y coordinates of the center point
         center_x, center_y = center
 
+        # Calculate direction vector based on the given angle
         direction_x, direction_y = (
             math.cos(math.radians(angle)), math.sin(math.radians(angle)))
+
+        # Classify points of the middle polygon as left or right based on the angle and center point
         left_points, right_points = self.classify_points_left_right(angle, center, middle_polygon)
 
-        endpoint_left_x, endpoint_left_y = self.calculate_endpoint_from_direction(center_x, center_y, direction_x, direction_y, dime)
+        # Calculate the endpoint of the line extending in the direction of the angle from the center point
+        endpoint_left_x, endpoint_left_y = self.calculate_endpoint_from_direction(center_x, center_y, direction_x,
+                                                                                  direction_y, dime)
 
+        # Calculate the opposite angle (180 degrees away) to find the other direction
         opposite_angle = (angle + 180) % 360
 
+        # Calculate direction vector based on the opposite angle
         opposite_direction_x, opposite_direction_y = (
             math.cos(math.radians(opposite_angle)), math.sin(math.radians(opposite_angle)))
 
-        endpoint_right_x, endpoint_right_y = self.calculate_endpoint_from_direction(center_x, center_y, opposite_direction_x, opposite_direction_y, dime)
+        # Calculate the endpoint of the line extending in the opposite direction from the center point
+        endpoint_right_x, endpoint_right_y = self.calculate_endpoint_from_direction(center_x, center_y,
+                                                                                    opposite_direction_x,
+                                                                                    opposite_direction_y, dime)
 
+        # Create a line segment using the left and right endpoints
         line_segment = [(endpoint_right_x, endpoint_right_y), (endpoint_left_x, endpoint_left_y)]
 
-        farthest_right_x, farthest_right_y = self.find_farthest_point_from_line(line_segment, right_points, middle_polygon, direction_x, direction_y, dime)
-        farthest_left_x, farthest_left_y = self.find_farthest_point_from_line(line_segment, left_points, middle_polygon, direction_x, direction_y, dime)
+        # Find the farthest point on the right side of the polygon from the line segment
+        farthest_right_x, farthest_right_y = self.find_farthest_point_from_line(line_segment, right_points,
+                                                                                middle_polygon, direction_x,
+                                                                                direction_y, dime)
 
-        right_endpoint = self.calculate_endpoint_from_direction(farthest_right_x, farthest_right_y, direction_x, direction_y, dime)
-        left_endpoint = self.calculate_endpoint_from_direction(farthest_left_x, farthest_left_y, direction_x, direction_y, dime)
+        # Find the farthest point on the left side of the polygon from the line segment
+        farthest_left_x, farthest_left_y = self.find_farthest_point_from_line(line_segment, left_points, middle_polygon,
+                                                                              direction_x, direction_y, dime)
 
+        # Calculate the endpoint of a line extending from the farthest right point in the direction of the angle
+        right_endpoint = self.calculate_endpoint_from_direction(farthest_right_x, farthest_right_y, direction_x,
+                                                                direction_y, dime)
+
+        # Calculate the endpoint of a line extending from the farthest left point in the direction of the angle
+        left_endpoint = self.calculate_endpoint_from_direction(farthest_left_x, farthest_left_y, direction_x,
+                                                               direction_y, dime)
+
+        # Set the left and right points to the farthest left and right points found
         left_point = (farthest_left_x, farthest_left_y)
         right_point = (farthest_right_x, farthest_right_y)
 
+        # Return the left and right points along with their corresponding endpoints
         return left_point, right_point, left_endpoint, right_endpoint
 
     def handle_polygon_movement(self, polygon, from_point, to_point, angle, middle_point, convex_region_pol_object,
@@ -1179,17 +1260,25 @@ class Algo_final:
             polygon.set_translation_by_distance_and_angle(distance_from_current_pol_to_previous_pol, new_angle)
 
     def final_polygon_update(self, polygon, f_p, t_p, value, list_of_polygons):
+        # Set the translation of the polygon from the first point (f_p) to the target point (t_p)
         polygon.set_translation_by_point(f_p, t_p)
 
+        # Create a deep copy of the polygon to avoid modifying the original polygon
         copied = copy.deepcopy(polygon)
-        con = copied.convert_coords_to_int_self()
 
+        # Convert the polygon's coordinates to integers for more efficient handling
+        con = copied.convert_coordinates_to_int()
+
+        # Update the copied polygon's coordinates with the converted integer values
         copied.set_coordinates(con)
 
+        # Add the updated polygon copy to the list of polygons
         list_of_polygons.append(copied)
 
+        # Update the value by adding the polygon's value
         value = value + polygon.value
 
+        # Return the updated value and the modified list of polygons
         return value, list_of_polygons
 
     def get_translation_by_center(self, coordinates, new_center_x, new_center_y):
@@ -1237,149 +1326,170 @@ class Algo_final:
 
         # Update all coordinates by adding the translation vector
         return [(x + translation_x, y + translation_y) for x, y in coordinates]
-    def algo(self, filename):
-        start_time = time.time()
-        sorted_items = sorted(self.item_instances, key=lambda item: (item.value / item.calculate_total_dimensions()),
-                              reverse=True)
-        diameter = self.container_instance.calculate_total_dimensions()
 
+    def algo(self):
+        # Record the start time for performance tracking
+        start_time = time.time()
+
+        # Sort the items by their value-to-dimension ratio in descending order
+        sorted_items = sorted(self.item_instances, key=lambda item: (item.value / item.get_largest_dimension()),
+                              reverse=True)
+
+        # Calculate the total dimensions of the container
+        diameter = self.container_instance.get_largest_dimension()
+
+        # Check if the container is close to being a square
         split_flag = self.is_close_to_square(self.container_instance.coordinates)
 
+        # If the container is square-like, directly plot the items
         if split_flag:
-            list_of_polygons, value = self.plot(self.container_instance.coordinates, sorted_items, diameter, filename)
+            list_of_polygons, value = self.plot(self.container_instance.coordinates, sorted_items, diameter)
         else:
+            # If not square-like, check the number of polygon vertices (4 = rectangle/square)
             len_pol = len(self.container_instance.coordinates)
+
+            # Perform recursive splitting based on the number of polygon vertices
             if len_pol == 4:
                 split_list = self.recursive_split(self.container_instance.coordinates, 100, diameter * 2, False)
             else:
                 split_list = self.recursive_split(self.container_instance.coordinates, 100, diameter * 2, True)
+
+            # Get the number of resulting split polygons
             split_num = len(split_list)
             n = split_num
 
-            # Create a list of empty lists to hold the split items
+            # Initialize a list of empty lists to store the sorted items into split regions
             list_of_lists = [[] for _ in range(n)]
 
-            # Distribute the polygons into the lists based on their index modulo n
+            # Distribute the sorted items among the split polygons using modulo indexing
             for dex, polygon in enumerate(sorted_items):
                 list_of_lists[dex % n].append(polygon)
 
-            # Plot each convex region with the corresponding list of items
+            # Initialize variables to store the final list of polygons and the total value
             final_lists = []
             sum_val = 0
-            for i in range(n):
-                final_list, val = self.plot(split_list[i], list_of_lists[i], diameter, filename)
-                sum_val = val + sum_val
-                final_lists.extend(final_list)
 
+            # Plot items into each split polygon and update the total value
+            for i in range(n):
+                final_list, val = self.plot(split_list[i], list_of_lists[i], diameter)
+                sum_val = val + sum_val  # Accumulate the value from each split
+                final_lists.extend(final_list)  # Extend the final list with the polygons from this iteration
+
+            # Store the final polygons and value after all splits are processed
             list_of_polygons = final_lists
             value = sum_val
 
+        # Calculate the elapsed time for the algorithm
         end_time = time.time()
         elapsed_time = end_time - start_time
 
+        # Print the number of polygons processed, total items, execution time, and total value
         print("num of polygons", len(list_of_polygons), "out of", len(self.item_instances), "time", elapsed_time,
               "value", value)
 
-    def plot(self, convex_region, list_pol, diameter, filename):
+    def plot(self, convex_region, list_pol, diameter):
+        # Shrink the convex region slightly for better packing efficiency
         convex_region_shrink = self.shrink_polygon(1, convex_region)
+
+        # Initialize angle and other relevant variables
         angle = 0
-        current_angle = 0  # Starting angle
+        current_angle = 0  # Starting angle for placing polygons
         ext_size = 1
         ext_size_for_loop = 3
         ext_size_for_loop_rec = 4
 
+        # Calculate the centroid (middle point) of the shrunken convex region
         middle_point = self.calculate_centroid(convex_region_shrink)
-        convex_region = convex_region_shrink
 
+        # Initialize different levels of detail for the convex region
+        convex_region = convex_region_shrink
         convex_region_original = convex_region_shrink
         convex_region_less_detailed = convex_region_shrink
         half_detailed_convex_region = convex_region_shrink
+
+        # Initialize flags and tracking variables
         pink_in = False
         blue_in = False
-
+        first_polygon = True
         result_list = []
         value = 0
-        start_time = time.time()
         previous_polygon = None
 
+        # Iterate through the list of polygons to place them
         for dex, polygon in enumerate(list_pol):
             can_place_polygon = False
             extended_polygon = None
             right_line = None
             left_line = None
 
-            print(dex)
+            print(dex)  # Debugging statement to track index
 
+            # Set polygon translation to the center of the region
             x, y = middle_point
-
             polygon.set_translation_by_center(x, y)
 
+            # Create polygon objects from the coordinates for geometric operations
             current_polygon = Polygon(polygon.coordinates)
             convex_region_polygon = Polygon(convex_region)
 
+            # Check if the polygon fits within the current convex region
             if current_polygon.within(convex_region_polygon):
-                if dex == 0:
+                if first_polygon:
+                    # Handle placement of the first polygon
+                    first_polygon = False
                     _, extended_polygon, right_line, left_line = self.placement(angle, polygon.coordinates, None,
-                                                                                   diameter)
+                                                                                diameter)
                     can_place_polygon = True
-                elif dex >= 1:
-                    previous_polygon.ext_size_for_loop = self.extend_polygon(previous_polygon.coordinates, ext_size_for_loop)
+                else:
+                    # Handle subsequent polygons
+                    previous_polygon.ext_size_for_loop = self.extend_polygon(previous_polygon.coordinates,
+                                                                             ext_size_for_loop)
                     rec_pol = self.polygon_to_rectangle(previous_polygon.ext_size_for_loop)
                     intersects = (Polygon(polygon.coordinates)).intersects((Polygon(rec_pol)))
 
                     if not intersects:
+                        # Further extend the previous polygon for the operations
                         previous_polygon.ext_size = self.extend_polygon(previous_polygon.coordinates, ext_size)
-                        previous_polygon.ext_size_for_loop_rec = self.extend_polygon(previous_polygon.coordinates, ext_size_for_loop_rec)
+                        previous_polygon.ext_size_for_loop_rec = self.extend_polygon(previous_polygon.coordinates,
+                                                                                     ext_size_for_loop_rec)
                         move_back = False
                         within = False
 
+                        # Loop to find the best tangent points and placement angle
                         for j_index in range(3):
                             if j_index == 0:
-                                angle, right_point, left_point, extended_poly,\
-                                right_li, left_li, found = self.find_LR_tangent(
-                                    previous_polygon, polygon, ext_size_for_loop_rec,
-                                    diameter, True, False)
+                                angle, right_point, left_point, extended_poly, right_li, left_li, found = self.find_tangent_points(
+                                    previous_polygon, polygon, ext_size_for_loop_rec, diameter, True, False)
                             else:
-                                angle, right_point, left_point, extended_poly, \
-                                right_li, left_li, found = self.find_LR_tangent(
-                                    previous_polygon,
-                                    polygon,
-                                    ext_size_for_loop,
-                                    diameter, False, False)
-                            if not found and angle == 1:
-                                self.create_json(self.container_instance.coordinates, result_list,
-                                                 "satris/" + filename + "error"+ dex, convex_region,
-                                                 convex_region_less_detailed, half_detailed_convex_region, blue_in, pink_in, previous_polygon.left_point)
-
+                                angle, right_point, left_point, extended_poly, right_li, left_li, found = self.find_tangent_points(
+                                    previous_polygon, polygon, ext_size_for_loop, diameter, False, False)
 
                             if found:
+                                # If tangent points are found, update the extended polygon and lines
                                 extended_polygon = extended_poly
                                 right_line = right_li
                                 left_line = left_li
 
                                 if j_index == 0:
-                                    right_point = self.find_best_point(polygon, previous_polygon, right_line, right_point, left_point)
-
+                                    # Move the polygon to the best found points
+                                    right_point = self.find_best_point(polygon, previous_polygon, right_line,
+                                                                       right_point, left_point)
                                     polygon.set_translation_by_point(right_point, left_point)
 
                                     if Polygon(polygon.coordinates).within(convex_region_polygon):
                                         within = True
                                         continue
                                     else:
+                                        # Handle cases where the polygon is partially within the original region
                                         go_to = False
                                         if Polygon(polygon.coordinates).within(
                                                 Polygon(convex_region_original)) and not Polygon(
-                                            polygon.coordinates).within(convex_region_polygon):
+                                                polygon.coordinates).within(convex_region_polygon):
                                             go_to = True
-                                        angle, right_point, left_point, extended_poly, \
-                                        right_li, left_li, found = self.find_LR_tangent(
+                                        angle, right_point, left_point, extended_poly, right_li, left_li, found = self.find_tangent_points(
                                             previous_polygon, polygon, ext_size_for_loop, diameter, False, True)
-                                        if not found and angle == 1:
-                                            self.create_json(self.container_instance.coordinates, result_list,
-                                                             "satris/" + filename + "error" + dex, convex_region,
-                                                             convex_region_less_detailed, half_detailed_convex_region,
-                                                             blue_in, pink_in, previous_polygon.left_point)
                                         if found:
+                                            # Check for intersection and possibly move the polygon back
                                             self.move_back_and_check_intersection(polygon, previous_polygon,
                                                                                   middle_point, angle)
                                             if go_to:
@@ -1390,57 +1500,44 @@ class Algo_final:
                                             continue
 
                                 if j_index == 1 and move_back:
-                                    self.handle_polygon_movement(polygon, right_point, left_point,
-                                                                 angle, middle_point, convex_region_polygon,
-                                                                 previous_polygon, convex_region, x, y, diameter)
+                                    # Handle polygon movement and intersection checks
+                                    self.handle_polygon_movement(polygon, right_point, left_point, angle, middle_point,
+                                                                 convex_region_polygon, previous_polygon, convex_region,
+                                                                 x, y, diameter)
                                 elif j_index == 1 and within:
                                     can_place_polygon = True
                                     break
-
                                 elif j_index == 2:
                                     can_place_polygon = True
 
                             if not found:
                                 break
 
-
                 if can_place_polygon:
+                    # Determine the best placement for the polygon and update the final list
                     from_point, to_point = self.find_best_placement_for_polygon(polygon.coordinates, extended_polygon,
-                                               convex_region, angle, right_line,
-                                               left_line, diameter)
-
+                                                                                convex_region, angle, right_line,
+                                                                                left_line, diameter)
                     value, result_list = self.final_polygon_update(polygon, from_point, to_point, value, result_list)
 
-                    left_point, _ = self.find_most_left_or_right_point(angle, polygon.coordinates,
-                                                                              None,
-                                                                              ext_size_for_loop,
-                                                                              False, diameter)
-
+                    # Find the most extreme left point for further processing
+                    left_point, _ = self.find_most_left_or_right_point(angle, polygon.coordinates, None,
+                                                                       ext_size_for_loop, False, diameter)
                     polygon.left_point = left_point
 
-                    convex_region, convex_region_less_detailed, current_angle, \
-                    blue_in, pink_in, half_detailed_convex_region = self.update_convex_region(
-                        angle,
-                        convex_region,
-                        convex_region_less_detailed,
-                        polygon.coordinates,
-                        ext_size,
-                        middle_point,
-                        to_point,
-                        current_angle, blue_in, pink_in, half_detailed_convex_region, diameter)
+                    # Update the convex region and its detailed versions
+                    convex_region, convex_region_less_detailed, current_angle, blue_in, pink_in, half_detailed_convex_region = self.update_convex_region(
+                        angle, convex_region, convex_region_less_detailed, polygon.coordinates, ext_size, middle_point,
+                        to_point, current_angle, blue_in, pink_in, half_detailed_convex_region, diameter)
 
+                    # Set the previous polygon to the current one for the next iteration
                     previous_polygon = polygon
+
+                    # Update the middle point based on the new convex region
                     middle_point = self.calculate_centroid(convex_region)
                     print("placed")
 
-
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        print(elapsed_time)
-        print("num of polygons", len(result_list), "out of", len(self.item_instances), "time", elapsed_time, "value",
-              value)
-        print("done")
-
+        # Return the final list of placed polygons and the total value
         return result_list, value
 
 

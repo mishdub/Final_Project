@@ -1,6 +1,5 @@
 
 import math
-
 from shapely.geometry import Polygon
 
 class Item:
@@ -28,55 +27,18 @@ class Item:
         self.min_x = min(self.x_coordinates)
         self.min_y = min(self.y_coordinates)
 
-    def calculate_width(self):
-        """
-        Calculate and return the width of the item based on its coordinates.
-
-        Returns:
-        - The width of the item.
-        """
-        return self.max_x - self.min_x
-
-    def calculate_height(self):
-        """
-        Calculate and return the height of the item based on its coordinates.
-
-        Returns:
-        - The height of the item.
-        """
-        return self.max_y - self.min_y
-
-    def calculate_total_dimensions(self):
-        """
-        Calculate and return the total dimensions (area) of the item based on its coordinates.
-
-        Returns:
-        - The total dimensions (area) of the item.
-        """
+    def get_largest_dimension(self):
+        # Calculate the width of the object by subtracting the minimum x value from the maximum x value
         width = self.max_x - self.min_x
+
+        # Calculate the height of the object by subtracting the minimum y value from the maximum y value
         height = self.max_y - self.min_y
+
+        # Determine the largest dimension (either width or height) by using the max function
         total_dimensions = max(width, height)
+
+        # Return the largest dimension
         return total_dimensions
-
-    def calculate_thinness(self):
-        """
-        Calculate and return the total dimensions (area) of the item based on its coordinates.
-
-        Returns:
-        - The total dimensions (area) of the item.
-        """
-        width = self.max_x - self.min_x
-        height = self.max_y - self.min_y
-        return width / height
-
-    def calculate_centroid(self):
-        num_points = len(self.coordinates)
-        if num_points == 0:
-            return None
-
-        centroid_x = sum(self.x_coordinates) / num_points
-        centroid_y = sum(self.y_coordinates) / num_points
-        return centroid_x, centroid_y
 
     def set_translation_by_center(self, new_center_x, new_center_y):
         # Calculate the current center point of the item
@@ -151,16 +113,7 @@ class Item:
         self.min_x = min(self.x_coordinates)
         self.min_y = min(self.y_coordinates)
 
-    def convert_coords_to_int_self(self):
-        """
-        Converts a list of coordinates from float to integer by rounding.
-
-        Parameters:
-        - coords: List of tuples, where each tuple contains float coordinates.
-
-        Returns:
-        - A list of tuples with integer coordinates.
-        """
+    def convert_coordinates_to_int(self):
         int_coordinates = [(round(x), round(y)) for x, y in self.coordinates]
         return int_coordinates
 

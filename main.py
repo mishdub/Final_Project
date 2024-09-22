@@ -1,7 +1,7 @@
 import json
 from Item import Item
 from Container import Container
-from Algo_final import Algo_final
+from algorithm import algorithm
 
 
 def load_json(filename):
@@ -25,8 +25,8 @@ def main():
             item_instance = Item(quantity, value, x_coords, y_coords)
             item_instances.append(item_instance)
 
-    Algo_instance = Algo_final(container_instance, item_instances)
-    Algo_instance.algo("temp")
+    Algo_instance = algorithm(container_instance, item_instances)
+    Algo_instance.algo()
 
 if __name__ == "__main__":
     main()
