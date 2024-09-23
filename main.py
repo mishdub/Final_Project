@@ -28,7 +28,7 @@ def main():
             item_instances.append(item_instance)
 
     Algo_instance = Algorithm(container_instance, item_instances)
-    result_list = Algo_instance.algo()
+    result_list = Algo_instance.run_algorithm()
 
     draw_instance = Draw(container_instance, result_list)
 

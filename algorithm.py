@@ -1328,7 +1328,7 @@ class Algorithm:
         # Update all coordinates by adding the translation vector
         return [(x + translation_x, y + translation_y) for x, y in coordinates]
 
-    def algo(self):
+    def run_algorithm(self):
         # Record the start time for performance tracking
         start_time = time.time()
 
@@ -1344,7 +1344,7 @@ class Algorithm:
 
         # If the container is square-like, directly plot the items
         if split_flag:
-            list_of_polygons, value = self.plot(self.container_instance.coordinates, sorted_items, diameter)
+            list_of_polygons, value = self.packing_algorithm(self.container_instance.coordinates, sorted_items, diameter)
         else:
             # If not square-like, check the number of polygon vertices (4 = rectangle/square)
             len_pol = len(self.container_instance.coordinates)
@@ -1372,7 +1372,7 @@ class Algorithm:
 
             # Plot items into each split polygon and update the total value
             for i in range(n):
-                final_list, val = self.plot(split_list[i], list_of_lists[i], diameter)
+                final_list, val = self.packing_algorithm(split_list[i], list_of_lists[i], diameter)
                 sum_val = val + sum_val  # Accumulate the value from each split
                 final_lists.extend(final_list)  # Extend the final list with the polygons from this iteration
 
@@ -1392,7 +1392,7 @@ class Algorithm:
 
 
 
-    def plot(self, convex_region, list_pol, diameter):
+    def packing_algorithm(self, convex_region, list_pol, diameter):
         # Shrink the convex region slightly for better packing efficiency
         convex_region_shrink = self.shrink_polygon(1, convex_region)
 
