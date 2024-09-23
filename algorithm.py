@@ -1384,8 +1384,8 @@ class algorithm:
         elapsed_time = end_time - start_time
 
         # Print the number of polygons processed, total items, execution time, and total value
-        print("num of polygons", len(list_of_polygons), "out of", len(self.item_instances), "time", elapsed_time,
-              "value", value)
+        print(f"Number of polygons: {len(list_of_polygons)} out of {len(self.item_instances)}, "
+              f"Time: {elapsed_time:.2f} seconds, Value: {value}")
 
         return list_of_polygons
 
