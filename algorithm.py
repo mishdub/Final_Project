@@ -1387,6 +1387,10 @@ class algorithm:
         print("num of polygons", len(list_of_polygons), "out of", len(self.item_instances), "time", elapsed_time,
               "value", value)
 
+        return list_of_polygons
+
+
+
     def plot(self, convex_region, list_pol, diameter):
         # Shrink the convex region slightly for better packing efficiency
         convex_region_shrink = self.shrink_polygon(1, convex_region)

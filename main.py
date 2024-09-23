@@ -2,6 +2,8 @@ import json
 from Item import Item
 from Container import Container
 from algorithm import algorithm
+from Draw import Draw
+
 
 
 def load_json(filename):
@@ -26,7 +28,11 @@ def main():
             item_instances.append(item_instance)
 
     Algo_instance = algorithm(container_instance, item_instances)
-    Algo_instance.algo()
+    result_list = Algo_instance.algo()
+
+    draw_instance = Draw(container_instance, result_list)
+
+    draw_instance.plot()  # This creates the plot
 
 if __name__ == "__main__":
     main()
