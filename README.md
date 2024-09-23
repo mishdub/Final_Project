@@ -29,6 +29,7 @@ By exploring different methods, we aim to provide useful insights and contribute
 ## The Constraints
 
 - **No Overlap**: The polygons must be arranged without overlapping or intersecting.
+  
 - **No Rotation, Tilting, or Dilation**: The items must maintain their original orientation, shape, and scale during placement.
 
 ## The Output
@@ -66,7 +67,7 @@ Our solution is implemented in Python utilizing the following libraries and tool
 **Prepared by:**
 
 Mishell Dubovitski  
-Alina Zakhozha  
+Alina Zahozi 
 
 **Supervised by:**  
 Dr. Gabriel Nivasch
