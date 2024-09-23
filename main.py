@@ -1,6 +1,6 @@
 import json
 from item import Item
-from Container import Container
+from container import Container
 from algorithm import Algorithm
 from draw import Draw
 
