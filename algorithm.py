@@ -345,7 +345,7 @@ class algorithm:
     def polygon_to_rectangle(self, coordinates):
         # Check if the input list of coordinates is not empty
         if not coordinates:
-            return None
+            raise ValueError("The list of coordinates cannot be empty.")
 
         # Find the minimum and maximum coordinates of the polygon
         min_x = min(coord[0] for coord in coordinates)
@@ -516,7 +516,8 @@ class algorithm:
 
             else:
 
-                return None  # or handle as needed if no valid geometry is found
+                raise ValueError("No valid geometry found")  # or a more specific/custom error message
+
         else:
             # If it's a single Polygon, get its exterior coordinates directly
             return list(mergedPolys.exterior.coords)
