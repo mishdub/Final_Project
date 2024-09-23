@@ -60,8 +60,6 @@ Our solution is implemented in Python utilizing the following libraries and tool
 
 - **Geometric Libraries**: We used the **Shapely** library for handling polygonal data and performing intersection checks.
 
-- **Visualization**: We used the **Matplotlib** library for visual output, showcasing the final arrangement of polygons within the container for better analysis.
-
 ---
   
 **Prepared by:**
