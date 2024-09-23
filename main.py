@@ -1,8 +1,8 @@
 import json
-from Item import Item
+from item import Item
 from Container import Container
-from algorithm import algorithm
-from Draw import Draw
+from algorithm import Algorithm
+from draw import Draw
 
 
 
@@ -27,7 +27,7 @@ def main():
             item_instance = Item(quantity, value, x_coords, y_coords)
             item_instances.append(item_instance)
 
-    Algo_instance = algorithm(container_instance, item_instances)
+    Algo_instance = Algorithm(container_instance, item_instances)
     result_list = Algo_instance.algo()
 
     draw_instance = Draw(container_instance, result_list)

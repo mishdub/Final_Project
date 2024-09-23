@@ -6,7 +6,7 @@ import time
 import copy
 
 
-class algorithm:
+class Algorithm:
 
     def __init__(self, container_instance, item_instances):
         self.container_instance = container_instance
