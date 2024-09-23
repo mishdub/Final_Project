@@ -67,7 +67,7 @@ Our solution is implemented in Python utilizing the following libraries and tool
 **Prepared by:**
 
 Mishell Dubovitski  
-Alina Zahozi 
+Alina Zakhozha
 
 **Supervised by:**  
 Dr. Gabriel Nivasch
