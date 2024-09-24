@@ -61,6 +61,41 @@ Our solution is implemented in Python utilizing the following libraries and tool
 - **Geometric Libraries**: We used the **Shapely** library for handling polygonal data and performing intersection checks.
 - **Visualization**: We used the **Matplotlib** library for visual output, showcasing the final arrangement of polygons within the container for better analysis.
 
+## Installation Guide
+
+### 1. Clone the Repository
+To copy the remote repository to your local machine, use the following command:
+
+```bash
+git clone https://github.com/mishdub/Final_Project.git
+```
+
+Once cloned, navigate into the project directory:
+
+```bash
+cd Final_Project
+```
+
+### 2. Install Dependencies
+Ensure Python is installed on your system. Then, install the required libraries for polygon handling and visualizations:
+
+```bash
+pip install Shapely matplotlib
+```
+
+### 3. Running the Algorithm
+To execute the polygon packing algorithm, run the `main.py` file:
+
+```bash
+python main.py
+```
+
+When prompted, input the instance path for the algorithm to use. For example:
+
+```bash
+Challenge Instances/Atris/atris1672.cgshop2024_instance.json
+```
+
 ---
   
 **Prepared by:**
