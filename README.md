@@ -18,7 +18,7 @@ By exploring different methods, we aim to provide useful insights and contribute
 ## The input
 
 - **A container**: A convex polygon that serves as the bounding region where items must be placed.
-- **A set of items**: Each item is also a polygon with a fixed shape, orientation, and an associated integer value.
+- **A set of items**: Each item is a polygon with a fixed shape, orientation, and an associated integer value.
   
 <div align="center">
     <img src="https://drive.google.com/uc?export=download&id=14ZeNfKfievqEdrsuaC4eCngFRgcENGsW" alt="Photo 2" width="300" />
