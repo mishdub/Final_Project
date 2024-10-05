@@ -148,10 +148,17 @@ class Algorithm:
         )
 
         # Determine which distance is smaller and return the corresponding points
-        if dis_poly < dis_boundary:
-            return from_poly, to_poly, dis_poly
-        else:
-            return from_boundary, to_boundary, dis_boundary
+        if intersection.geom_type == "LineString":
+            if dis_poly < dis_boundary:
+                return from_poly, to_poly, dis_poly
+            else:
+                return from_boundary, to_boundary, dis_boundary
+
+        elif intersection.geom_type == "MultiLineString":
+            if dis_boundary < dis_poly:
+                return from_boundary, to_boundary, dis_boundary
+            else:
+                return from_poly, to_poly, dis_poly
 
     def check_boundary_distances(self, convex_exterior, right_line, left_line, closest_start_point, closest_end_point,
                                  min_distance):
@@ -817,7 +824,7 @@ class Algorithm:
 
     def update_convex_region(self, angle, convex_region, less_detailed_convex_region, polygon, extension_size, midpoint,
                              target_point, current_angle, is_blue_region_active, is_pink_region_active,
-                             half_detailed_convex_region, dimension):
+                             half_detailed_convex_region, dimension, first_polygon_flag):
 
         # Calculate the angle and normalize it to the range [0, 360)
         normalized_angle = self.calculate_angle_in_degrees(midpoint, target_point) % 360
@@ -848,7 +855,8 @@ class Algorithm:
 
                 half_detailed_convex_region = self.merge_polygon_with_boundary(Polygon(less_detailed_convex_region),
                                                                                polygon, extension_size)
-                is_pink_region_active = True
+                if not first_polygon_flag:
+                    is_pink_region_active = True
 
         # If angle is in the blue region (180 <= angle < 360)
         else:
@@ -1390,8 +1398,6 @@ class Algorithm:
 
         return list_of_polygons
 
-
-
     def packing_algorithm(self, convex_region, list_pol, diameter):
         # Shrink the convex region slightly for better packing efficiency
         convex_region_shrink = self.shrink_polygon(1, convex_region)
@@ -1445,8 +1451,11 @@ class Algorithm:
                     _, extended_polygon, right_line, left_line = self.placement(angle, polygon.coordinates, None,
                                                                                 diameter)
                     can_place_polygon = True
+                    first_polygon_flag = True
+
                 else:
                     # Handle subsequent polygons
+                    first_polygon_flag = False
                     previous_polygon.ext_size_for_loop = self.extend_polygon(previous_polygon.coordinates,
                                                                              ext_size_for_loop)
                     rec_pol = self.polygon_to_rectangle(previous_polygon.ext_size_for_loop)
@@ -1533,7 +1542,7 @@ class Algorithm:
                     # Update the convex region and its detailed versions
                     convex_region, convex_region_less_detailed, current_angle, blue_in, pink_in, half_detailed_convex_region = self.update_convex_region(
                         angle, convex_region, convex_region_less_detailed, polygon.coordinates, ext_size, middle_point,
-                        to_point, current_angle, blue_in, pink_in, half_detailed_convex_region, diameter)
+                        to_point, current_angle, blue_in, pink_in, half_detailed_convex_region, diameter, first_polygon_flag)
 
                     # Set the previous polygon to the current one for the next iteration
                     previous_polygon = polygon
