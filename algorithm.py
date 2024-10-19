@@ -438,7 +438,7 @@ class Algorithm:
 
         return vertical_line, horizontal_line
 
-    def merge_polygon_with_boundary(self, pol1, pol2, ext_size=None):
+    def subtract_polygon_from_boundary(self, pol1, pol2, ext_size=None):
         # Extend pol2 if ext_size is provided
         if ext_size is not None:
             big_p = self.extend_polygon(pol2, ext_size)
@@ -446,13 +446,13 @@ class Algorithm:
         else:
             buffered_result = Polygon(pol2)
 
-        mergedPolys = pol1.difference(buffered_result)
+        subtracted_polys = pol1.difference(buffered_result)
 
-        if isinstance(mergedPolys, MultiPolygon):
+        if isinstance(subtracted_polys, MultiPolygon):
             largest_polygon = None
             largest_area = 0
             # Iterate through the constituent polygons
-            for polygon in mergedPolys.geoms:
+            for polygon in subtracted_polys.geoms:
                 # Get the coordinates of the exterior boundary of each polygon
                 if isinstance(polygon, Polygon):
                     # Calculate the area of the polygon
@@ -462,7 +462,7 @@ class Algorithm:
                         largest_polygon = polygon
             return list(largest_polygon.exterior.coords)
 
-        elif isinstance(mergedPolys, GeometryCollection):
+        elif isinstance(subtracted_polys, GeometryCollection):
 
             largest_geom = None
 
@@ -470,7 +470,7 @@ class Algorithm:
 
             # Iterate over each geometry in the GeometryCollection
 
-            for geom in mergedPolys.geoms:
+            for geom in subtracted_polys.geoms:
 
                 if isinstance(geom, Polygon):
 
@@ -527,7 +527,7 @@ class Algorithm:
 
         else:
             # If it's a single Polygon, get its exterior coordinates directly
-            return list(mergedPolys.exterior.coords)
+            return list(subtracted_polys.exterior.coords)
 
     def extend_polygon_with_angle(self, angle, convex_region, polygon, extension_size, dime):
         # Create the original extended polygon, the new extended polygon, and ordered coordinates based on the given angle
@@ -833,28 +833,28 @@ class Algorithm:
         extended_polygon_coordinates = self.extend_polygon_with_angle(angle, convex_region, polygon, extension_size,
                                                                       dimension)
         # Generate the new regions for both detailed and less detailed versions
-        new_detailed_region = self.merge_polygon_with_boundary(Polygon(convex_region), polygon, extension_size)
-        new_less_detailed_region = self.merge_polygon_with_boundary(Polygon(less_detailed_convex_region),
-                                                                    extended_polygon_coordinates)
+        new_detailed_region = self.subtract_polygon_from_boundary(Polygon(convex_region), polygon, extension_size)
+        new_less_detailed_region = self.subtract_polygon_from_boundary(Polygon(less_detailed_convex_region),
+                                                                       extended_polygon_coordinates)
 
         # Update the convex region based on the angle
         # If angle is in the pink region (0 <= angle < 180)
         if 0 <= normalized_angle < 180:
             if is_pink_region_active:
                 convex_region = new_detailed_region
-                half_detailed_convex_region = self.merge_polygon_with_boundary(Polygon(half_detailed_convex_region),
-                                                                               polygon, extension_size)
+                half_detailed_convex_region = self.subtract_polygon_from_boundary(Polygon(half_detailed_convex_region),
+                                                                                  polygon, extension_size)
             else:
                 if is_blue_region_active:
-                    half_detailed_convex_region = self.merge_polygon_with_boundary(Polygon(half_detailed_convex_region),
-                                                                                   polygon, extension_size)
+                    half_detailed_convex_region = self.subtract_polygon_from_boundary(Polygon(half_detailed_convex_region),
+                                                                                      polygon, extension_size)
                     convex_region = half_detailed_convex_region
                     is_blue_region_active = False
                 else:
                     convex_region = new_detailed_region
 
-                half_detailed_convex_region = self.merge_polygon_with_boundary(Polygon(less_detailed_convex_region),
-                                                                               polygon, extension_size)
+                half_detailed_convex_region = self.subtract_polygon_from_boundary(Polygon(less_detailed_convex_region),
+                                                                                  polygon, extension_size)
                 if not first_polygon_flag:
                     is_pink_region_active = True
 
@@ -862,14 +862,14 @@ class Algorithm:
         else:
             if is_blue_region_active:
                 convex_region = new_detailed_region
-                half_detailed_convex_region = self.merge_polygon_with_boundary(Polygon(half_detailed_convex_region),
-                                                                               polygon, extension_size)
+                half_detailed_convex_region = self.subtract_polygon_from_boundary(Polygon(half_detailed_convex_region),
+                                                                                  polygon, extension_size)
             else:
-                half_detailed_convex_region = self.merge_polygon_with_boundary(Polygon(half_detailed_convex_region),
-                                                                               polygon, extension_size)
+                half_detailed_convex_region = self.subtract_polygon_from_boundary(Polygon(half_detailed_convex_region),
+                                                                                  polygon, extension_size)
                 convex_region = half_detailed_convex_region
-                half_detailed_convex_region = self.merge_polygon_with_boundary(Polygon(less_detailed_convex_region),
-                                                                               polygon, extension_size)
+                half_detailed_convex_region = self.subtract_polygon_from_boundary(Polygon(less_detailed_convex_region),
+                                                                                  polygon, extension_size)
                 is_blue_region_active = True
                 is_pink_region_active = False
 
@@ -1359,9 +1359,9 @@ class Algorithm:
 
             # Perform recursive splitting based on the number of polygon vertices
             if len_pol == 4:
-                split_list = self.recursive_split(self.container_instance.coordinates, 100, diameter * 2, False)
+                split_list = self.recursive_split(self.container_instance.coordinates, 2, diameter * 2, False)
             else:
-                split_list = self.recursive_split(self.container_instance.coordinates, 100, diameter * 2, True)
+                split_list = self.recursive_split(self.container_instance.coordinates, 2, diameter * 2, True)
 
             # Get the number of resulting split polygons
             split_num = len(split_list)
