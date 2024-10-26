@@ -52,7 +52,7 @@ Our final solution employs three primary methods for the Packing algorithm: **Do
 
 4. **Splitting**: If the region is imbalanced in terms of width and height, it is recursively split into smaller regions with more equal dimensions.
 
-More information about the algorithms used is available in the following paper: [Project Book](https://drive.google.com/file/d/1zsJCYtVNwr5ZldGUu-WDJCH95DzbJBNq/view?usp=sharing).
+More information about the algorithms used is available in the following paper: [Project Book](https://drive.google.com/file/d/1Dt4HXGcbIzcZqoVKipUYXpvhjsJcl6-N/view?usp=sharing).
 
 ## Technical Implementation
 
